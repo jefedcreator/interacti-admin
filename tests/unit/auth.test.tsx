@@ -53,9 +53,10 @@ describe('RequireAuth', () => {
   });
 
   it('lets a visitor with a token through', async () => {
-    const { router } = renderApp('/strive');
+    // /strive is a real page now and would call the product, so a path that is no product stands in.
+    const { router } = renderApp('/nope');
 
     expect(await screen.findByRole('heading', { name: "This page doesn't exist." })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/strive');
+    expect(router.state.location.pathname).toBe('/nope');
   });
 });
