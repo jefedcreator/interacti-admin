@@ -25,7 +25,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
         </select>
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-ink/50"
+          className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-ink/50 [.surface-light_&]:text-ink/80"
         >
           ↓
         </span>
