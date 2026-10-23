@@ -48,3 +48,4 @@ product's server environment:
    https (or `localhost` for development).
 
 If a product rejects the token it shows "Token rejected" and the others keep working.
+# interacti-admin
