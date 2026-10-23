@@ -73,7 +73,7 @@ export function DeleteModal({
             />
           </Field>
           <div className="mt-7 grid gap-2.5 sm:flex sm:flex-row-reverse">
-            <Button disabled={!matched || isPending} onClick={confirm}>
+            <Button variant="secondary" disabled={!matched || isPending} onClick={confirm}>
               {isPending ? 'Deleting…' : `Delete ${noun}`}
             </Button>
             <Modal.Close asChild>
