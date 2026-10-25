@@ -3,6 +3,8 @@ import { cn } from '@/utils';
 
 type FieldContextValue = {
   id: string;
+  /** The label's own id, for a popup that is named by the same label (a combobox's listbox). */
+  labelId: string;
   describedBy: string | undefined;
   invalid: boolean;
 };
@@ -30,13 +32,20 @@ interface FieldProps {
  * replaces the hint. There is no colour: the error is black at full strength and weight 500.
  */
 export function Field({ id, label, optional, hint, error, className, children }: FieldProps) {
+  const labelId = `${id}-label`;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
 
   return (
-    <FieldContext.Provider value={{ id, describedBy: errorId ?? hintId, invalid: Boolean(error) }}>
+    <FieldContext.Provider
+      value={{ id, labelId, describedBy: errorId ?? hintId, invalid: Boolean(error) }}
+    >
       <div className={cn('grid grid-cols-1 gap-1.5', className)}>
-        <label htmlFor={id} className="text-micro leading-[1.3] font-medium text-ink/80">
+        <label
+          id={labelId}
+          htmlFor={id}
+          className="text-micro leading-[1.3] font-medium text-ink/80"
+        >
           {label}
           {optional ? ' (optional)' : null}
         </label>

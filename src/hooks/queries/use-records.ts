@@ -6,17 +6,21 @@ import type { AdminApiError } from '@/utils';
 import { adminKeys } from './keys';
 import { notConnected } from './use-manifest';
 
-/** One page of a resource's records. Off until the product is connected. */
+/**
+ * One page of a resource's records. Off until the product is connected, and while `enabled` is
+ * false: the relation picker asks only once its list is open.
+ */
 export function useRecordsQuery(
   slug: ProductSlug,
   resource: string,
   params: ListParams,
+  options: { enabled?: boolean } = {},
 ): UseQueryResult<PaginatedApiResponse<AdminRecord[]>, AdminApiError> {
   const api = useProductApi(slug);
 
   return useQuery<PaginatedApiResponse<AdminRecord[]>, AdminApiError>({
     queryKey: adminKeys.list(slug, resource, params),
     queryFn: () => (api ? api.list(resource, params) : Promise.reject(notConnected())),
-    enabled: api !== null,
+    enabled: api !== null && (options.enabled ?? true),
   });
 }

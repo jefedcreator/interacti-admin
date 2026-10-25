@@ -8,7 +8,7 @@ export { Menu, MenuContent, MenuItem, MenuTrigger } from './Menu';
 export { Modal } from './Modal';
 export { Notice } from './Notice';
 export { Pill } from './Pill';
-export { Popover, PopoverContent, PopoverTrigger } from './Popover';
+export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from './Popover';
 export { ProductMark } from './ProductMark';
 export { Select } from './Select';
 export { Skeleton } from './Skeleton';
