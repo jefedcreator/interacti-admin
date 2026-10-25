@@ -4,7 +4,7 @@ import { StateMessage } from '@/components/state-message';
 import { productBySlug, type ProductConfig } from '@/config/products';
 import { useManifestQuery } from '@/hooks/queries/use-manifest';
 import { Button, ProductMark, Skeleton } from '@/primitives';
-import { describeConnection, fixFor, formatCount, groupResources } from '@/utils';
+import { describeConnection, fixFor, formatCount, groupResources, unreachableCause } from '@/utils';
 import type { AdminApiError } from '@/utils';
 import { NotFoundPage } from './not-found';
 
@@ -12,6 +12,7 @@ import { NotFoundPage } from './not-found';
 function causeOf(product: ProductConfig, error: AdminApiError | null): string | undefined {
   switch (error?.kind) {
     case 'unreachable':
+      return unreachableCause(product);
     case 'server':
       return `${product.name} didn't answer.`;
     case 'unauthorized':

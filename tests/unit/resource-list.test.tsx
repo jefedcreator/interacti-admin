@@ -257,7 +257,7 @@ describe('resource list: errors', () => {
     expect(await screen.findByRole('link', { name: 'Lagos Runners' })).toBeInTheDocument();
   });
 
-  it("says the product didn't answer, and tries again", async () => {
+  it("says the product didn't answer or its admin is off, and tries again", async () => {
     let down = true;
     // While down, every list request fails at the network; after, it falls through to the fake.
     server.use(
@@ -267,7 +267,11 @@ describe('resource list: errors', () => {
     renderApp('/strive/clubs', { token: FAKE_TOKEN });
 
     expect(await screen.findByRole('heading', { name: "Couldn't load clubs." })).toBeInTheDocument();
-    expect(screen.getByText("Strive didn't answer.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Strive didn't answer, or its admin isn't switched on for this dashboard. Check ADMIN_API_TOKEN and ADMIN_ORIGIN (no trailing slash).",
+      ),
+    ).toBeInTheDocument();
 
     down = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
@@ -357,10 +361,6 @@ describe('resource list: editing', () => {
     await waitFor(() => expect(name).toHaveAccessibleDescription('Too short'));
     expect(screen.getByRole('dialog', { name: 'Edit club' })).toBeInTheDocument();
   });
-});
-
-describe('resource list: deleting', () => {
-  async function confirmDeleteOf(user: UserEvent, title: string): Promise<HTMLElement> {
 
   it('keeps the modal open while a save is pending, so a failure shows in it', async () => {
     let release: () => void = () => {};
@@ -396,6 +396,10 @@ describe('resource list: deleting', () => {
     await waitFor(() => expect(name).toHaveAccessibleDescription('Too short'));
     expect(screen.getByRole('dialog', { name: 'Edit club' })).toBeInTheDocument();
   });
+});
+
+describe('resource list: deleting', () => {
+  async function confirmDeleteOf(user: UserEvent, title: string): Promise<HTMLElement> {
     await openRowMenu(user, title);
     await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
     const dialog = await screen.findByRole('dialog', { name: `Delete ${title}?` });

@@ -25,6 +25,7 @@ import {
   fixFor,
   formatCount,
   toSearchParams,
+  unreachableCause,
   type AdminApiError,
 } from '@/utils';
 import { NotFoundPage } from './not-found';
@@ -51,6 +52,7 @@ const titleClasses = 'text-large leading-none font-medium tracking-[-0.02em] bre
 export function causeOf(product: ProductConfig, error: AdminApiError): string {
   switch (error.kind) {
     case 'unreachable':
+      return unreachableCause(product);
     case 'server':
       return `${product.name} didn't answer.`;
     case 'unauthorized':

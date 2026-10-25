@@ -112,6 +112,14 @@ export function fixFor(product: ProductConfig, error?: AdminApiError | null): st
   return null;
 }
 
+/**
+ * Why a product sent no answer a browser can read. A product with its admin off answers 404 to the
+ * preflight, which fails CORS, so "off" and "down" reach the page as the same network error.
+ */
+export function unreachableCause(product: ProductConfig): string {
+  return `${product.name} didn't answer, or its admin isn't switched on for this dashboard. Check ADMIN_API_TOKEN and ADMIN_ORIGIN (no trailing slash).`;
+}
+
 /** Resources under their group headings, groups in the order they first appear. */
 export function groupResources(
   resources: AdminResourceMeta[],

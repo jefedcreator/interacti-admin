@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { ProductConfig } from '@/config/products';
 import { adminKeys } from '@/hooks/queries/keys';
-import { AdminApiError, describeConnection, fixFor, formatCount, groupResources } from '@/utils';
+import {
+  AdminApiError,
+  describeConnection,
+  fixFor,
+  formatCount,
+  groupResources,
+  unreachableCause,
+} from '@/utils';
 import { fakeManifest } from '../fake-api/fixture';
 
 const ready: ProductConfig = {
@@ -103,6 +110,12 @@ describe('fixFor', () => {
 
   it('asks for the token on the server when the admin is off', () => {
     expect(fixFor(ready, fail('off'))).toBe('Set ADMIN_API_TOKEN on the server and restart it.');
+  });
+
+  it('names what to check when a product sends nothing a browser can read', () => {
+    expect(unreachableCause(ready)).toBe(
+      `${ready.name} didn't answer, or its admin isn't switched on for this dashboard. Check ADMIN_API_TOKEN and ADMIN_ORIGIN (no trailing slash).`,
+    );
   });
 
   it('has nothing to say otherwise', () => {
