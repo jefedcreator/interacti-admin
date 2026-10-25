@@ -48,4 +48,33 @@ product's server environment:
    https (or `localhost` for development).
 
 If a product rejects the token it shows "Token rejected" and the others keep working.
+## Deploy
+
+A push to `main` runs `.github/workflows/deploy.yml` ("Deploy interacti admin"): it
+installs, runs `yarn test` and `yarn build`, uploads `dist/` to
+`/srv/interacti-admin/releases/<sha>` on the host and runs `deploy/release.sh`, which
+points `/srv/interacti-admin/current` at it. nginx serves that symlink as static files.
+
+The workflow needs these repository secrets (Settings, Secrets and variables, Actions).
+It reads nothing else, and it uses no repository variables:
+
+| Secret | What it is |
+| --- | --- |
+| `SSH_HOST` | The host's address, `84.12.92.46` |
+| `SSH_USER` | The ssh user on that host, `opc` |
+| `SSH_KEY` | The deploy private key, the whole file including header and footer |
+
+They are the same values the landing uses. Never commit a key. Details, the certificate
+step, rollback and the nginx kit are in [`deploy/README.md`](deploy/README.md).
+
+### First use
+
+1. Create the GitHub repo and add the `SSH_HOST`, `SSH_USER` and `SSH_KEY` secrets.
+2. On the host, run `bash deploy/setup-host.sh`, then certbot for
+   `admin.interacti.84-12-92-46.sslip.io` (the dashboard refuses http, so the certificate
+   is required before first sign-in).
+3. Set `ADMIN_API_TOKEN` and `ADMIN_ORIGIN` on each product and restart it, once the
+   admin API has shipped to that product.
+4. Push to `main`, then sign in.
+
 # interacti-admin

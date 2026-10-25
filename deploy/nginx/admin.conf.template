@@ -1,0 +1,76 @@
+# Static vhost for the interacti admin dashboard. Rendered by
+# deploy/setup-host.sh; do not edit the installed copy in /etc/nginx/conf.d.
+# Edit this template and re-run setup.
+#
+# certbot --nginx appends its TLS server block and redirect to the INSTALLED
+# copy. Re-running setup-host.sh would overwrite that, so it refuses to
+# regenerate a file already containing ssl_certificate. The dashboard refuses to
+# sign in over http, so the certificate is required before first use.
+#
+# add_header does not inherit into a location that declares its own add_header,
+# so every location below repeats the full security header set, the
+# Content-Security-Policy included. Keep them identical.
+server {
+    listen      80;
+    listen      [::]:80;
+    server_name __SERVER_NAME__;
+
+    root  /srv/interacti-admin/current;
+    index index.html;
+
+    gzip            on;
+    gzip_vary       on;
+    gzip_proxied    any;
+    gzip_comp_level 6;
+    gzip_types      text/plain text/css application/json application/javascript
+                    text/xml application/xml text/javascript image/svg+xml;
+
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header Referrer-Policy no-referrer always;
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+
+    # Single-page app: any path that is not a file falls back to the shell.
+    location / {
+        try_files $uri /index.html;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Referrer-Policy no-referrer always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    # Vite fingerprints everything under /assets/, so it can be cached forever.
+    # ^~ stops the static-file regex below from giving hashed files a shorter TTL.
+    location ^~ /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Referrer-Policy no-referrer always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    # Unhashed static files: the self-hosted fonts and the logo.
+    location ~* \.(?:woff2|avif|webp|jpg|png|svg|ico)$ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=604800" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Referrer-Policy no-referrer always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    # The HTML names the current hashed bundle, so it must be revalidated.
+    location = /index.html {
+        add_header Cache-Control "no-cache" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Referrer-Policy no-referrer always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+}
