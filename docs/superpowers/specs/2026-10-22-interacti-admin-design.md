@@ -513,13 +513,13 @@ Every dialog in the app uses it: the record view, create and edit, and delete.
 - **nginx:**
   - SPA fallback `try_files $uri /index.html`;
   - hashed `/assets/*` immutable for a year, and `index.html` `no-cache`;
-  - `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`;
+  - `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`;
   - `X-Robots-Tag: noindex, nofollow`;
   - `Referrer-Policy: no-referrer`;
   - `X-Frame-Options: DENY`;
   - `X-Content-Type-Options: nosniff`.
 
-  `connect-src` allows any https origin so the CSP needn't track the product list. `script-src 'self'` is what stops injected script.
+  `connect-src` and `img-src` allow any https origin so the CSP needn't track the product list or where its images are hosted. `script-src 'self'` is what stops injected script.
 - **CI:** a GitHub Actions workflow like the landing's: build on `ubuntu-latest`, rsync to `releases/<sha>`, run `release.sh`, with the existing `SSH_HOST`, `SSH_USER` and `SSH_KEY` secrets.
 - **Products:** each product's server environment gains `ADMIN_API_TOKEN` and `ADMIN_ORIGIN=https://admin.interacti.84-12-92-46.sslip.io`, documented in its `.env.example` and deploy README.
 

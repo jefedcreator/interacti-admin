@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import type { ProductSlug } from '@/config/products';
 import { Pill } from '@/primitives';
@@ -6,6 +7,39 @@ import { cn, formatValue, NO_VALUE } from '@/utils';
 
 /** The surface's secondary text: 50% on black, 80% on a white modal. */
 const SECONDARY = 'text-ink/50 [.surface-light_&]:text-ink/80';
+
+/** An https address, the only kind the CSP lets an image load from. */
+function isHttpsUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A string field holding an https address, shown as the picture it points at with the address kept
+ * beneath it. The manifest doesn't say which fields are images, so any such address is tried; one
+ * that isn't a picture, or doesn't load, falls back to the address as text.
+ */
+function ImageValue({ label, url }: { label: string; url: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <span className="break-words">{url}</span>;
+  return (
+    <div className="grid justify-items-start gap-2">
+      <img
+        src={url}
+        alt={label}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="max-h-40 max-w-full rounded-lg border border-ink/10 object-contain"
+      />
+      <span className={cn('break-all text-micro', SECONDARY)}>{url}</span>
+    </div>
+  );
+}
 
 interface FieldValueProps {
   product: ProductSlug;
@@ -19,7 +53,8 @@ interface FieldValueProps {
 
 /**
  * One field's value, in a table cell or the record view. A reference is a link to the record it
- * points at, named by that record's title. An enum is a pill. "No" and "—" are secondary text.
+ * points at, named by that record's title. An enum is a pill. In the record view an https address
+ * in a string field is shown as an image. "No" and "—" are secondary text.
  */
 export function FieldValue({ product, field, value, ref, full = false }: FieldValueProps) {
   const wrap = full ? 'whitespace-pre-wrap break-words' : undefined;
@@ -46,6 +81,10 @@ export function FieldValue({ product, field, value, ref, full = false }: FieldVa
         {JSON.stringify(value, null, 2)}
       </pre>
     );
+  }
+
+  if (full && field.type === 'string' && !field.list && isHttpsUrl(value)) {
+    return <ImageValue label={field.label} url={value} />;
   }
 
   const text = formatValue(field, value);
