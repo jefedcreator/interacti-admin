@@ -16,8 +16,10 @@ export function Toaster() {
           title: 'font-medium',
           description: 'text-black/80',
           icon: 'hidden',
-          actionButton: 'ml-auto cursor-pointer font-medium underline underline-offset-4',
-          cancelButton: 'cursor-pointer underline underline-offset-4',
+          // The pill is white and the base focus ring is white, so the buttons ring in black.
+          actionButton:
+            'ml-auto cursor-pointer font-medium underline underline-offset-4 focus-visible:outline-black',
+          cancelButton: 'cursor-pointer underline underline-offset-4 focus-visible:outline-black',
         },
       }}
     />
