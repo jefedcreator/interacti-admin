@@ -145,6 +145,12 @@
     color: #000;
   }
 
+  /* Inverted on white modals, where a white selection would not show. */
+  .surface-light ::selection {
+    background: #000;
+    color: #fff;
+  }
+
   /*
    * A date or time field's calendar button takes focus inside the field's own shadow tree, where
    * the field matches neither :focus nor :focus-visible, only :focus-within. Ring the field then
