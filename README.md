@@ -48,6 +48,7 @@ product's server environment:
    https (or `localhost` for development).
 
 If a product rejects the token it shows "Token rejected" and the others keep working.
+
 ## Deploy
 
 A push to `main` runs `.github/workflows/deploy.yml` ("Deploy interacti admin"): it
