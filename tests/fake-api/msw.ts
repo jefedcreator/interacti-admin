@@ -24,7 +24,11 @@ export function adminHandlers(origin: string, api: FakeAdminApi): HttpHandler[] 
       url: request.url,
       path: url.pathname,
       search: url.search,
-      headers: Object.fromEntries(request.headers.entries()),
+      // Lower-case names, as a Fetch `Headers` gives them; happy-dom's `Headers` keeps the
+      // sender's casing ("Authorization"), and header names are case-insensitive anyway.
+      headers: Object.fromEntries(
+        Array.from(request.headers.entries(), ([name, value]) => [name.toLowerCase(), value]),
+      ),
       body,
     });
 
