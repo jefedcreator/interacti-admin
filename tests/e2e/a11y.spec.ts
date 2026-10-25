@@ -23,8 +23,8 @@ async function expectNoViolations(page: Page): Promise<void> {
 }
 
 test.describe('axe: no violations', () => {
-  test('/sign-in', async ({ page }) => {
-    await page.goto('/sign-in');
+  test('/signin', async ({ page }) => {
+    await page.goto('/signin');
     await expect(page.getByLabel('Admin token')).toBeVisible();
     await expectNoViolations(page);
   });

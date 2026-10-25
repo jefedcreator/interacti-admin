@@ -8,7 +8,7 @@ export function RequireAuth() {
 
   if (!token) {
     const next = `${location.pathname}${location.search}`;
-    const to = next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`;
+    const to = next === '/' ? '/signin' : `/signin?next=${encodeURIComponent(next)}`;
     return <Navigate to={to} replace />;
   }
 

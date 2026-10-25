@@ -61,8 +61,8 @@ async function expectBottomSheet(page: Page, dialog: Locator, primary: Locator):
 }
 
 test.describe('375px: no sideways page scroll', () => {
-  test('/sign-in', async ({ page }) => {
-    await page.goto('/sign-in');
+  test('/signin', async ({ page }) => {
+    await page.goto('/signin');
     await expect(page.getByLabel('Admin token')).toBeVisible();
     await expectNoSidewaysScroll(page);
   });

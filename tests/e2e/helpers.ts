@@ -17,13 +17,13 @@ export function only(info: TestInfo, ...projects: string[]): void {
 
 /**
  * Puts the fakes in place (Strive accepting `FAKE_TOKEN`, Sara rejecting it), then signs in at
- * `/sign-in`. It ends on the overview. A reload keeps the token, so tests may `goto` from here.
+ * `/signin`. It ends on the overview. A reload keeps the token, so tests may `goto` from here.
  */
 export async function signIn(page: Page): Promise<void> {
   await installFakeApi(page, STRIVE_ORIGIN, createFakeAdminApi({ token: FAKE_TOKEN, product: 'strive' }));
   await installFakeApi(page, SARA_ORIGIN, createFakeAdminApi({ token: SARA_TOKEN, product: 'sara' }));
 
-  await page.goto('/sign-in');
+  await page.goto('/signin');
   await page.getByLabel('Admin token').fill(FAKE_TOKEN);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Products' })).toBeVisible();

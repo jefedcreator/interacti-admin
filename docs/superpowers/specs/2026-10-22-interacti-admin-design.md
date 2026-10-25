@@ -346,7 +346,7 @@ Excluded: `VerificationToken` (sign-in tokens with no single id).
 
 | Path | Screen |
 |---|---|
-| `/sign-in` | The logo, the eyebrow "Admin", one field "Admin token", and "Sign in". It returns to `?next=` afterwards |
+| `/signin` | The logo, the eyebrow "Admin", one field "Admin token", and "Sign in". It returns to `?next=` afterwards |
 | `/` | Products: a card per product with its tile, name, status ("● Live · SaaS", "○ Coming soon · AI"), and connection: "14 resources · 2,340 records", "Not connected", "Needs HTTPS", "Couldn't reach it", "Admin is off" or "Token rejected" |
 | `/:product` | The product's resources by group, each with its record count |
 | `/:product/:resource` | The table (§8.2) |

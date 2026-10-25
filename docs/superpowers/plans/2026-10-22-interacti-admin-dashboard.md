@@ -155,7 +155,7 @@ admin/
 import { test, expect } from '@playwright/test';
 
 test('the app loads on black, in Switzer, unindexed', async ({ page }) => {
-  await page.goto('/sign-in');
+  await page.goto('/signin');
   await expect(page).toHaveTitle('interacti admin');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(0, 0, 0)');
@@ -404,7 +404,7 @@ git commit -m "chore: scaffold the admin app with the landing's tokens, fonts an
   - **`Provider({ children })`:** `QueryClientProvider` → `AuthProvider` (whose `onSignOut` clears the query cache) → `Toaster`.
   - **`useProductApi(slug: ProductSlug): ReturnType<typeof adminApi> | null`:** `null` unless the product is `ready` and a token exists. It's memoised on `apiBase` and `token`.
   - **`verifyToken(token: string, list = products): Promise<{ accepted: ProductSlug[]; rejected: ProductSlug[]; failed: ProductSlug[] }>`:** it calls `manifest()` on every ready product in parallel. A 401 is `rejected`; any other error is `failed`.
-  - **`routes: RouteObject[]`:** `/sign-in`, then a `RequireAuth` + `AppShell` layout. Its children are added in Tasks 6, 9 and 10, and `*` is `NotFoundPage`. There is no create or edit route.
+  - **`routes: RouteObject[]`:** `/signin`, then a `RequireAuth` + `AppShell` layout. Its children are added in Tasks 6, 9 and 10, and `*` is `NotFoundPage`. There is no create or edit route.
   - **`renderApp(path: string, options?: { token?: string | null }): RenderResult & { router }`:** used by every later page test. It mounts `routes` in `createMemoryRouter` inside a fresh `Provider`, with the token preset in `sessionStorage`.
 
 - [ ] **Step 1: Write the failing tests.**
@@ -412,14 +412,14 @@ git commit -m "chore: scaffold the admin app with the landing's tokens, fonts an
     - `signIn('t')` stores `t` under `ix-admin-token`;
     - `signOut()` removes it and calls `onSignOut` once;
     - the provider starts from a stored token;
-    - `renderApp('/strive', { token: null })` lands on `/sign-in?next=%2Fstrive`.
+    - `renderApp('/strive', { token: null })` lands on `/signin?next=%2Fstrive`.
   - **`sign-in.test.tsx`:** MSW mounts the fake at `https://strive.test` with `FAKE_TOKEN`, and at `https://sara.test` with a different token.
-    - Typing a wrong token and submitting shows `That token wasn't accepted.`, and the URL stays `/sign-in`.
-    - `FAKE_TOKEN` navigates to `next`: from `/sign-in?next=%2Fstrive%2Fclubs` it lands on `/strive/clubs`, even though Sara rejected the token.
+    - Typing a wrong token and submitting shows `That token wasn't accepted.`, and the URL stays `/signin`.
+    - `FAKE_TOKEN` navigates to `next`: from `/signin?next=%2Fstrive%2Fclubs` it lands on `/strive/clubs`, even though Sara rejected the token.
     - `next=%2F%2Fevil.example` lands on `/`.
     - With every origin answering `HttpResponse.error()`, it shows `Couldn't reach any product. Check that their admin is switched on.`
     - The button reads `Checking…` and is disabled while pending.
-    - On `http://admin.example/sign-in` (set the page URL through happy-dom), it shows `Sign-in needs HTTPS.` and the button is disabled.
+    - On `http://admin.example/signin` (set the page URL through happy-dom), it shows `Sign-in needs HTTPS.` and the button is disabled.
 - [ ] **Step 2: Run them to see them fail.** Run `yarn test tests/unit/auth.test.tsx tests/unit/sign-in.test.tsx`. Expected: FAIL.
 - [ ] **Step 3: Implement.**
   - **The sign-in screen** (spec §8.1) is centred on black: the `Logo`, the eyebrow "Admin", a `Field` "Admin token" with an `Input type="password"` and `autoComplete="current-password"`, and the primary button "Sign in".
@@ -766,7 +766,7 @@ git commit -m "chore: scaffold the admin app with the landing's tokens, fonts an
 - Consumes: the fake API and every screen.
 - Produces:
   - **`installFakeApi(page: Page, origin: string, api: ReturnType<typeof createFakeAdminApi>): Promise<void>`.** It routes `${origin}/api/admin/**` to `api.handle`. It answers `OPTIONS` with 204 and adds `Access-Control-Allow-Origin: http://localhost:4173`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS` to every response.
-  - **`signIn(page: Page): Promise<void>`:** it installs the fakes (Strive accepting `FAKE_TOKEN`, Sara rejecting it), then signs in at `/sign-in`.
+  - **`signIn(page: Page): Promise<void>`:** it installs the fakes (Strive accepting `FAKE_TOKEN`, Sara rejecting it), then signs in at `/signin`.
 
 - [ ] **Step 1: Write the failing specs.**
   - **`journey.spec.ts`** (`desktop` and `reduced`):
@@ -784,7 +784,7 @@ git commit -m "chore: scaffold the admin app with the landing's tokens, fonts an
     - `Open menu` opens with Enter, and ArrowDown moves through View, Edit and Delete;
     - in the edit modal, Tab cycles inside it and never reaches the table behind.
   - **`a11y.spec.ts`:** `new AxeBuilder({ page }).analyze()` finds no violations on these screens:
-    - `/sign-in`;
+    - `/signin`;
     - `/`;
     - `/strive`;
     - `/strive/clubs`;

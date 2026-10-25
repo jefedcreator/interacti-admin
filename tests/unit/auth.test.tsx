@@ -47,7 +47,7 @@ describe('RequireAuth', () => {
   it('sends a visitor without a token to sign-in, remembering the page', async () => {
     const { router } = renderApp('/strive', { token: null });
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/sign-in'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/signin'));
     expect(router.state.location.search).toBe('?next=%2Fstrive');
     expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });

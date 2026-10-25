@@ -156,7 +156,7 @@ describe('app shell', () => {
     await user.click(await screen.findByRole('button', { name: 'Sign out' }));
 
     await waitFor(() => expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull());
-    await waitFor(() => expect(router.state.location.pathname).toBe('/sign-in'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/signin'));
     expect(router.state.location.search).toBe('');
   });
 });

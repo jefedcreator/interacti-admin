@@ -23,7 +23,7 @@ export function AppShell() {
   // Leave first and clear the token second, so RequireAuth never sees "signed out, still on a
   // page" and adds `?next=` to a sign-in the visitor chose.
   async function leave() {
-    await navigate('/sign-in', { replace: true, flushSync: true });
+    await navigate('/signin', { replace: true, flushSync: true });
     signOut();
   }
 

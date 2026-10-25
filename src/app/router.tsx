@@ -14,7 +14,7 @@ import { SignInPage } from './routes/sign-in';
  * route: those open in a modal over the table.
  */
 export const routes: RouteObject[] = [
-  { path: '/sign-in', element: <SignInPage /> },
+  { path: '/signin', element: <SignInPage /> },
   {
     element: <RequireAuth />,
     children: [

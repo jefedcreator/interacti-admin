@@ -27,17 +27,17 @@ async function signInWith(token: string) {
 
 describe('sign-in', () => {
   it('refuses a wrong token and stays on sign-in', async () => {
-    const { router } = renderApp('/sign-in', { token: null });
+    const { router } = renderApp('/signin', { token: null });
 
     await signInWith('not-a-token');
 
     expect(await screen.findByText("That token wasn't accepted.")).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/sign-in');
+    expect(router.state.location.pathname).toBe('/signin');
     expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
   });
 
   it('asks for a token when the field is empty', async () => {
-    renderApp('/sign-in', { token: null });
+    renderApp('/signin', { token: null });
 
     await signInWith('');
 
@@ -45,7 +45,7 @@ describe('sign-in', () => {
   });
 
   it('goes to next once one product accepts the token, whatever the others say', async () => {
-    const { router } = renderApp('/sign-in?next=%2Fstrive%2Fclubs', { token: null });
+    const { router } = renderApp('/signin?next=%2Fstrive%2Fclubs', { token: null });
 
     await signInWith(FAKE_TOKEN);
 
@@ -54,7 +54,7 @@ describe('sign-in', () => {
   });
 
   it('goes to the products page when there is no next', async () => {
-    const { router } = renderApp('/sign-in', { token: null });
+    const { router } = renderApp('/signin', { token: null });
 
     await signInWith(FAKE_TOKEN);
 
@@ -62,7 +62,7 @@ describe('sign-in', () => {
   });
 
   it('ignores a next that points at another host', async () => {
-    const { router } = renderApp('/sign-in?next=%2F%2Fevil.example', { token: null });
+    const { router } = renderApp('/signin?next=%2F%2Fevil.example', { token: null });
 
     await signInWith(FAKE_TOKEN);
 
@@ -75,14 +75,14 @@ describe('sign-in', () => {
       http.all(`${STRIVE}/api/admin`, () => HttpResponse.error()),
       http.all(`${SARA}/api/admin`, () => HttpResponse.error()),
     );
-    const { router } = renderApp('/sign-in', { token: null });
+    const { router } = renderApp('/signin', { token: null });
 
     await signInWith(FAKE_TOKEN);
 
     expect(
       await screen.findByText("Couldn't reach any product. Check that their admin is switched on."),
     ).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/sign-in');
+    expect(router.state.location.pathname).toBe('/signin');
   });
 
   it('reads Checking… and is disabled while it waits', async () => {
@@ -98,7 +98,7 @@ describe('sign-in', () => {
         return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers: cors });
       });
     server.use(held(STRIVE), held(SARA));
-    renderApp('/sign-in', { token: null });
+    renderApp('/signin', { token: null });
 
     await signInWith('whatever');
 
@@ -118,8 +118,8 @@ describe('sign-in', () => {
     afterEach(() => setPageUrl('http://localhost:3000/'));
 
     it('refuses over http', () => {
-      setPageUrl('http://admin.example/sign-in');
-      renderApp('/sign-in', { token: null });
+      setPageUrl('http://admin.example/signin');
+      renderApp('/signin', { token: null });
 
       expect(screen.getByText('Sign-in needs HTTPS.')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
