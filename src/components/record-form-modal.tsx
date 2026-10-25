@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { ProductConfig } from '@/config/products';
 import {
@@ -78,12 +78,15 @@ export function RecordFormModal({
   /** The modal's content, where the relation picker's list portals to stay in the focus trap. */
   const [content, setContent] = useState<HTMLDivElement | null>(null);
 
-  // A refusal about a field the form shows goes under that field.
+  // A refusal about a field the form shows goes under that field. `names` is read through a ref so
+  // a manifest refetch (a new array, the same fields) doesn't set the error again and take focus.
+  const namesRef = useRef(names);
+  namesRef.current = names;
   useEffect(() => {
     if (!error) return;
-    const { field, message } = fieldErrorFrom(error, names);
+    const { field, message } = fieldErrorFrom(error, namesRef.current);
     if (field) setError(field, { type: 'server', message }, { shouldFocus: true });
-  }, [error, names, setError]);
+  }, [error, setError]);
 
   const failure = error ? fieldErrorFrom(error, names) : null;
   const formError = failure && failure.field === null ? failure.message : null;
