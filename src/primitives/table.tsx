@@ -1,10 +1,14 @@
 import type { ComponentProps } from 'react';
 import { cn } from '@/utils';
 
-/** A real table in a frame that scrolls sideways on its own, so the page never does. */
+/**
+ * A real table in a frame that scrolls sideways on its own, so the page never does. The frame is
+ * `relative` so it contains the cells' absolutely positioned `sr-only` labels too; otherwise they
+ * escape its clip and widen the page.
+ */
 export function Table({ className, ...props }: ComponentProps<'table'>) {
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className={cn('w-full text-body tabular-nums', className)} {...props} />
     </div>
   );
