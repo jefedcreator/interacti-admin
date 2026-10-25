@@ -361,6 +361,41 @@ describe('resource list: editing', () => {
 
 describe('resource list: deleting', () => {
   async function confirmDeleteOf(user: UserEvent, title: string): Promise<HTMLElement> {
+
+  it('keeps the modal open while a save is pending, so a failure shows in it', async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    server.use(
+      http.put(`${STRIVE}/api/admin/clubs/:key`, async () => {
+        await gate;
+        return HttpResponse.json({ message: 'name: Too short' }, { status: 422, headers: CORS });
+      }),
+    );
+    const user = userEvent.setup();
+    await openList();
+
+    await openRowMenu(user, 'Lagos Runners');
+    await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Edit club' });
+
+    const name = within(dialog).getByRole('textbox', { name: 'Name' });
+    await user.clear(name);
+    await user.type(name, 'L');
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
+    expect(await within(dialog).findByRole('button', { name: 'Saving…' })).toBeDisabled();
+
+    // Escape, the Close button and Cancel all leave it open.
+    await user.keyboard('{Escape}');
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('dialog', { name: 'Edit club' })).toBeInTheDocument();
+
+    release();
+    await waitFor(() => expect(name).toHaveAccessibleDescription('Too short'));
+    expect(screen.getByRole('dialog', { name: 'Edit club' })).toBeInTheDocument();
+  });
     await openRowMenu(user, title);
     await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
     const dialog = await screen.findByRole('dialog', { name: `Delete ${title}?` });

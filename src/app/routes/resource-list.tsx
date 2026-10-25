@@ -330,7 +330,11 @@ function ResourceList({ product, resource }: ResourceListProps) {
       <RecordFormModal
         key={editing.key}
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          // A save on its way can't be walked away from, or its failure would show nowhere.
+          if (!open && saving.isPending) return;
+          setFormOpen(open);
+        }}
         product={product}
         resource={resource}
         record={editing.record}

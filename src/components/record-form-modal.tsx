@@ -152,7 +152,9 @@ export function RecordFormModal({
                     {isPending ? 'Saving…' : mode === 'update' ? 'Save changes' : `Create ${noun}`}
                   </Button>
                   <Modal.Close asChild>
-                    <Button variant="secondary">Cancel</Button>
+                    <Button variant="secondary" disabled={isPending}>
+                      Cancel
+                    </Button>
                   </Modal.Close>
                 </div>
               </form>
