@@ -25,7 +25,7 @@ stub(Element.prototype, 'setPointerCapture', () => {});
 stub(Element.prototype, 'releasePointerCapture', () => {});
 stub(Element.prototype, 'scrollIntoView', () => {});
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }));
 
 afterEach(() => {
   // Vitest runs without globals, so Testing Library cannot register its own cleanup.

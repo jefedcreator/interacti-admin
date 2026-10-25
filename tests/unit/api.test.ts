@@ -62,7 +62,7 @@ describe('the requests', () => {
       filters: { isPublic: 'true' },
     });
     const sent = fake.requests.at(-1);
-    expect(sent?.path + sent?.search).toBe(
+    expect(`${sent?.path}${sent?.search}`).toBe(
       '/api/admin/clubs?page=2&size=20&query=lag&sortBy=name&sortOrder=asc&isPublic=true',
     );
     // Only Lagos Runners matches, so page 2 is empty.
