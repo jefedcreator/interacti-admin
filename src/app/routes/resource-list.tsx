@@ -19,7 +19,14 @@ import { useRecordsQuery } from '@/hooks/queries/use-records';
 import { useListParams } from '@/hooks/use-list-params';
 import { Button, Skeleton } from '@/primitives';
 import type { AdminRecord, AdminResourceMeta } from '@/types/admin';
-import { cn, describeConnection, fixFor, formatCount, type AdminApiError } from '@/utils';
+import {
+  cn,
+  describeConnection,
+  fixFor,
+  formatCount,
+  toSearchParams,
+  type AdminApiError,
+} from '@/utils';
 import { NotFoundPage } from './not-found';
 
 /** What the record view (the `:key` child route) asks of the list page that owns the modals. */
@@ -208,6 +215,23 @@ function ResourceList({ product, resource }: ResourceListProps) {
     <StateMessage title={`No ${plural} yet.`} />
   );
 
+  // The pager stays mounted while the next page loads, so the page button just pressed keeps focus
+  // and nothing jumps. It holds the last total of this same list: the same search, filters and
+  // size (sort and page don't change the total). Another list's total is never shown; a new
+  // resource remounts this component and starts empty.
+  const scope = toSearchParams({
+    ...params,
+    page: 1,
+    sortBy: undefined,
+    sortOrder: undefined,
+  }).toString();
+  const [held, setHeld] = useState<{ scope: string; total: number } | null>(null);
+  const total = list.data?.total;
+  if (total !== undefined && (!held || held.scope !== scope || held.total !== total)) {
+    setHeld({ scope, total });
+  }
+  const pagerTotal = total ?? (held && held.scope === scope ? held.total : undefined);
+
   // A failed refresh of a page already shown keeps the page; only a page that never came is an error.
   const failure = list.data ? null : list.error;
 
@@ -249,10 +273,10 @@ function ResourceList({ product, resource }: ResourceListProps) {
           caption={resource.label}
           getRowId={(record) => record._key}
         />
-        {list.data ? (
+        {pagerTotal !== undefined ? (
           <div className="mt-6">
             <Pagination
-              totalCount={list.data.total}
+              totalCount={pagerTotal}
               pageSize={params.size}
               currentPage={params.page}
               onPageChange={(page) => setParam('page', page > 1 ? String(page) : null)}

@@ -130,10 +130,17 @@ describe('resource list: paging', () => {
     );
     expect(within(pager).getByRole('button', { name: 'Previous page' })).toBeDisabled();
 
-    await user.click(within(pager).getByRole('button', { name: 'Page 2' }));
+    const page2 = within(pager).getByRole('button', { name: 'Page 2' });
+    await user.click(page2);
 
     await waitFor(() => expect(router.state.location.search).toBe('?page=2'));
     expect(await screen.findByRole('link', { name: 'Club 22' })).toBeInTheDocument();
+
+    // The pager stayed mounted through the load: the same button, current now, still focused.
+    expect(screen.getByRole('navigation', { name: 'Pagination' })).toBe(pager);
+    expect(within(pager).getByRole('button', { name: 'Page 2' })).toBe(page2);
+    expect(page2).toHaveAttribute('aria-current', 'page');
+    expect(page2).toHaveFocus();
   });
 });
 
