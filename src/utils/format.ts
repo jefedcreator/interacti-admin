@@ -1,5 +1,5 @@
 import type { ProductConfig } from '@/config/products';
-import type { AdminManifest, AdminResourceMeta } from '@/types/admin';
+import type { AdminFieldMeta, AdminManifest, AdminResourceMeta } from '@/types/admin';
 import type { AdminApiError } from './axios';
 
 const counts = new Intl.NumberFormat('en-GB');
@@ -7,6 +7,40 @@ const counts = new Intl.NumberFormat('en-GB');
 /** 2340 reads "2,340". */
 export function formatCount(n: number): string {
   return counts.format(n);
+}
+
+/** The reader's own locale and time zone. */
+const dateTimes = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+/** What stands in for a missing value. */
+export const NO_VALUE = '—';
+
+function formatOne(field: AdminFieldMeta, value: unknown): string {
+  if (value === null || value === undefined) return NO_VALUE;
+  switch (field.type) {
+    case 'datetime': {
+      const date = new Date(String(value));
+      return Number.isNaN(date.getTime()) ? String(value) : dateTimes.format(date);
+    }
+    case 'boolean':
+      return value === true ? 'Yes' : value === false ? 'No' : String(value);
+    case 'json':
+      return JSON.stringify(value);
+    default:
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+  }
+}
+
+/**
+ * One value as a line of text: a date and time in the reader's locale, a boolean as Yes or No,
+ * JSON compact, a list joined with commas, and nothing as "—".
+ */
+export function formatValue(field: AdminFieldMeta, value: unknown): string {
+  if (value === null || value === undefined) return NO_VALUE;
+  if (field.list && Array.isArray(value)) {
+    return value.map((item: unknown) => formatOne(field, item)).join(', ');
+  }
+  return formatOne(field, value);
 }
 
 const plural = (n: number, one: string, many: string): string =>

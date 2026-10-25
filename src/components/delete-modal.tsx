@@ -15,6 +15,8 @@ interface DeleteModalProps {
   isPending: boolean;
   /** The product's refusal, such as a 409. It replaces the description and the modal stays open. */
   error: AdminApiError | null;
+  /** Where focus goes once the modal has closed; the page knows what opened it. */
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 /**
@@ -29,6 +31,7 @@ export function DeleteModal({
   onConfirm,
   isPending,
   error,
+  onCloseAutoFocus,
 }: DeleteModalProps) {
   const fieldId = useId();
   const noun = resource.singular.toLowerCase();
@@ -53,10 +56,13 @@ export function DeleteModal({
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
       <Modal.Portal>
-        <Modal.Content>
+        <Modal.Content onCloseAutoFocus={onCloseAutoFocus}>
           <Modal.Handle />
           <Modal.Title>{`Delete ${record?._title ?? noun}?`}</Modal.Title>
-          <Modal.Description>{error ? error.message : DESCRIPTION}</Modal.Description>
+          {/* Live, so a refusal that replaces the description is read out where it appears. */}
+          <Modal.Description aria-live="polite">
+            {error ? error.message : DESCRIPTION}
+          </Modal.Description>
           <Field id={fieldId} label="Type delete to confirm" className="mt-5">
             <Input
               value={typed}
