@@ -15,6 +15,14 @@ const dateTimes = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', time
 /** What stands in for a missing value. */
 export const NO_VALUE = '—';
 
+/**
+ * A field's name beside its value. A reference shows the record it points at, so it drops the key
+ * suffix the manifest's label carries: "Owner id" reads "Owner".
+ */
+export function displayLabel(field: AdminFieldMeta): string {
+  return field.relation ? field.label.replace(/ id$/i, '') : field.label;
+}
+
 function formatOne(field: AdminFieldMeta, value: unknown): string {
   if (value === null || value === undefined) return NO_VALUE;
   switch (field.type) {

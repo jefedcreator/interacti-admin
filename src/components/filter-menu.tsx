@@ -8,6 +8,7 @@ import {
   Select,
 } from '@/primitives';
 import type { AdminFieldMeta, AdminResourceMeta } from '@/types/admin';
+import { displayLabel } from '@/utils';
 
 const ANY = 'Any';
 
@@ -24,11 +25,6 @@ function choicesOf(field: AdminFieldMeta): { value: string; label: string }[] | 
     return field.enumValues.map((value) => ({ value, label: value }));
   }
   return null;
-}
-
-/** A reference's name without the key suffix the manifest's label carries: "Owner id" reads "Owner". */
-function chipLabel(field: AdminFieldMeta): string {
-  return field.relation ? field.label.replace(/ id$/i, '') : field.label;
 }
 
 interface FilterMenuProps {
@@ -85,7 +81,7 @@ export function FilterMenu({ resource, filters, onFilter }: FilterMenuProps) {
       ) : null}
 
       {chips.map((field) => {
-        const text = `${chipLabel(field)}: ${filters[field.name] ?? ''}`;
+        const text = `${displayLabel(field)}: ${filters[field.name] ?? ''}`;
         return (
           <button
             key={field.name}

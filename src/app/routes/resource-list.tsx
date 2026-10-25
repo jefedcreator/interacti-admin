@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
-import { buildColumns, recordPath } from '@/components/columns';
+import { buildColumns, viewFromList } from '@/components/columns';
 import { DataTable } from '@/components/data-table';
 import { DeleteModal } from '@/components/delete-modal';
 import { Pagination } from '@/components/pagination';
@@ -33,6 +33,8 @@ import { NotFoundPage } from './not-found';
 export type ListOutletContext = {
   openEditor(record?: AdminRecord): void;
   confirmDelete(record: AdminRecord): void;
+  /** Once a modal about the record has closed: focus on its row's link, or the page's title. */
+  returnFocusTo(event: Event, key: string): void;
 };
 
 /** The create/edit modal's opening: a fresh key each time, and the record when editing. */
@@ -46,7 +48,7 @@ const pageClasses = 'px-[var(--gutter)] py-10 lg:py-14';
 const titleClasses = 'text-large leading-none font-medium tracking-[-0.02em] break-words';
 
 /** The sentence after "Couldn't load …": who didn't answer or said no, or the product's own words. */
-function causeOf(product: ProductConfig, error: AdminApiError): string {
+export function causeOf(product: ProductConfig, error: AdminApiError): string {
   switch (error.kind) {
     case 'unreachable':
     case 'server':
@@ -120,6 +122,19 @@ function ResourceList({ product, resource }: ResourceListProps) {
     [resetRemove],
   );
 
+  /** Puts focus where the modal came from, or on the page's title when that has gone. */
+  const returnFocus = useCallback((event: Event, target: HTMLElement | null): void => {
+    const element = target ?? headingRef.current;
+    if (!element) return;
+    event.preventDefault();
+    element.focus();
+  }, []);
+
+  const returnFocusTo = useCallback(
+    (event: Event, key: string): void => returnFocus(event, recordLinkIn(pageRef.current, key)),
+    [returnFocus],
+  );
+
   const columns = useMemo(
     () =>
       buildColumns({ product: product.slug, resource, onEdit: openEditor, onDelete: confirmDelete }),
@@ -127,8 +142,8 @@ function ResourceList({ product, resource }: ResourceListProps) {
   );
 
   const outletContext = useMemo<ListOutletContext>(
-    () => ({ openEditor, confirmDelete }),
-    [openEditor, confirmDelete],
+    () => ({ openEditor, confirmDelete, returnFocusTo }),
+    [openEditor, confirmDelete, returnFocusTo],
   );
 
   const saving = editing.record ? update : create;
@@ -148,17 +163,18 @@ function ResourceList({ product, resource }: ResourceListProps) {
       return;
     }
 
-    const fromList = search;
+    // The table's search as it was when saving, so the view opens over that same table.
+    const listSearch = search;
     create.mutate(payload, {
       onSuccess: (created) => {
         setFormOpen(false);
         toast(`${resource.singular} created.`, {
           action: {
             label: 'View',
-            onClick: () =>
-              void navigate(recordPath(product.slug, resource.key, created._key), {
-                state: { fromList },
-              }),
+            onClick: () => {
+              const view = viewFromList(product.slug, resource.key, created._key, listSearch);
+              void navigate(view.to, { state: view.state });
+            },
           },
         });
       },
@@ -177,14 +193,6 @@ function ResourceList({ product, resource }: ResourceListProps) {
         },
       },
     );
-  }
-
-  /** Puts focus where the modal came from, or on the page's title when that has gone. */
-  function returnFocus(event: Event, target: HTMLElement | null): void {
-    const element = target ?? headingRef.current;
-    if (!element) return;
-    event.preventDefault();
-    element.focus();
   }
 
   function cycleSort(field: string): void {
@@ -316,7 +324,7 @@ function ResourceList({ product, resource }: ResourceListProps) {
         {content}
       </div>
 
-      {/* The record view (Task 10) opens over the table as this route's child. */}
+      {/* The record view opens over the table as this route's `:key` child. */}
       <Outlet context={outletContext} />
 
       <RecordFormModal
