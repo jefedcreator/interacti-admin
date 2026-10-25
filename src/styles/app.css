@@ -145,14 +145,27 @@
     color: #000;
   }
 
-  :focus-visible {
+  /*
+   * A date or time field's calendar button takes focus inside the field's own shadow tree, where
+   * the field matches neither :focus nor :focus-visible, only :focus-within. Ring the field then
+   * too, and draw the button's ring in the text colour instead of the browser's blue.
+   */
+  :focus-visible,
+  input:is([type='date'], [type='datetime-local'], [type='time'], [type='month'], [type='week']):focus-within {
     outline: 2px solid #fff;
     outline-offset: 3px;
     box-shadow: 0 0 0 1px #000;
   }
 
+  /* Chromium ignores a focus pseudo-class here, but its own focus ring takes this colour. */
+  ::-webkit-calendar-picker-indicator {
+    outline-color: currentColor;
+  }
+
   /* Drawn black on white modals. */
-  .surface-light :focus-visible {
+  .surface-light :focus-visible,
+  .surface-light
+    input:is([type='date'], [type='datetime-local'], [type='time'], [type='month'], [type='week']):focus-within {
     outline-color: #000;
     box-shadow: 0 0 0 1px #fff;
   }
