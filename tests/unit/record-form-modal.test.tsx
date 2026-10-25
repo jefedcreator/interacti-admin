@@ -171,7 +171,8 @@ describe('RecordFormModal: create', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create club' }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Night Owls', ownerId: ada._key });
+    // The checkbox shows unticked, so `false` is sent: what is shown is what is saved.
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Night Owls', ownerId: ada._key, isPublic: false });
   });
 
   it('keeps a pasted key as typed when the field is left', async () => {
@@ -187,7 +188,11 @@ describe('RecordFormModal: create', () => {
     expect(owner).toHaveValue('user-zed');
     await user.click(screen.getByRole('button', { name: 'Create club' }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Night Owls', ownerId: 'user-zed' });
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: 'Night Owls',
+      ownerId: 'user-zed',
+      isPublic: false,
+    });
   });
 
   it('checks shape before sending anything', async () => {

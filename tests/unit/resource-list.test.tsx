@@ -299,7 +299,8 @@ describe('resource list: creating', () => {
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'New club' })).toBeNull());
     const post = only(sent('POST'));
     expect(post.path).toBe('/api/admin/clubs');
-    expect(post.body).toEqual({ name: 'Night Owls', ownerId: 'user-ada' });
+    // The checkbox shows unticked, so its false is sent.
+    expect(post.body).toEqual({ name: 'Night Owls', ownerId: 'user-ada', isPublic: false });
 
     expect(await screen.findByText('Club created.')).toBeInTheDocument();
     expect(

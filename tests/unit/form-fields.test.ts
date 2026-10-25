@@ -253,6 +253,22 @@ describe('toPayload', () => {
     ).toEqual(expected);
   });
 
+  it('sends a checkbox on create even when untouched, so what is shown is what is saved', () => {
+    const values = { ...filled, isPublic: false };
+    expect(toPayload(createFields, values, 'create', { name: true, ownerId: true })).toEqual({
+      name: 'Night Owls',
+      ownerId: ada._key,
+      isPublic: false,
+    });
+  });
+
+  it('leaves an untouched checkbox out on update', () => {
+    const current = toFormValues(updateFields, lagos);
+    expect(toPayload(updateFields, { ...current, name: 'Elsewhere' }, 'update', { name: true })).toEqual({
+      name: 'Elsewhere',
+    });
+  });
+
   it('covers dirty fields only', () => {
     const current = toFormValues(updateFields, lagos);
     expect(toPayload(updateFields, { ...current, name: 'Elsewhere' }, 'update', {})).toEqual({});

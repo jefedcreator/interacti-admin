@@ -165,6 +165,8 @@ function toWire(field: AdminFieldMeta, text: string): unknown {
 /**
  * The body to send: the dirty fields only. An empty field is left out on create, so the product's
  * default applies, and is `null` on update. An emptied list is `[]`, since a list is never null.
+ * A checkbox always shows true or false, so on create its value is always sent: what is shown is
+ * what is saved, whatever the product's default is.
  */
 export function toPayload(
   fields: AdminFieldMeta[],
@@ -175,9 +177,10 @@ export function toPayload(
   const payload: Record<string, unknown> = {};
 
   for (const field of fields) {
-    if (!dirty[field.name]) continue;
     const value = values[field.name];
     if (value === undefined) continue;
+    const shown = mode === 'create' && typeof value === 'boolean';
+    if (!shown && !dirty[field.name]) continue;
 
     if (typeof value === 'boolean') {
       payload[field.name] = value;
