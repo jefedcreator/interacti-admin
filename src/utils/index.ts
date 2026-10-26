@@ -1,3 +1,4 @@
+export * from './analytics';
 export * from './api';
 export * from './axios';
 export * from './cn';
