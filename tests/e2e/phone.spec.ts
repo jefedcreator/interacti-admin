@@ -82,6 +82,28 @@ test.describe('375px: no sideways page scroll', () => {
     await expectNoSidewaysScroll(page);
   });
 
+  test('/strive: two tiles sit side by side and nothing in them is clipped', async ({ page }) => {
+    await signIn(page);
+    await page.goto('/strive');
+    const views = page.getByRole('group', { name: 'Page views' });
+    const enquiries = page.getByRole('group', { name: 'Enquiries' });
+    await expect(views).toBeVisible();
+    await settled(page);
+
+    const [a, b] = await Promise.all([views.boundingBox(), enquiries.boundingBox()]);
+    expect(a && b, 'both tiles are on the page').toBeTruthy();
+    expect(a?.y, 'the two tiles share a row').toBe(b?.y);
+    expect((b?.x ?? 0) + (b?.width ?? 0), 'the second tile ends inside the window').toBeLessThanOrEqual(375);
+
+    for (const tile of [views, enquiries]) {
+      const { scrollWidth, clientWidth } = await tile.evaluate((el) => ({
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+      }));
+      expect(scrollWidth, 'a tile clips its content').toBeLessThanOrEqual(clientWidth);
+    }
+  });
+
   test('/strive/clubs', async ({ page }) => {
     await signIn(page);
     await openClubs(page);

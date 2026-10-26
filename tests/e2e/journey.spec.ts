@@ -148,3 +148,25 @@ test.describe('keyboard', () => {
     }
   });
 });
+
+test.describe('journey: the period', () => {
+  test('survives opening a resource and coming back', async ({ page }, info) => {
+    only(info, 'desktop', 'reduced');
+
+    await signIn(page);
+    await page.goto('/strive');
+    const main = page.getByRole('main');
+    await expect(main.getByRole('group', { name: 'Visitors' })).toBeVisible();
+
+    await main.getByText('7 days', { exact: true }).click();
+    await expect(page).toHaveURL(/days=7/);
+    await expect(main.getByRole('radio', { name: '7 days' })).toBeChecked();
+
+    await main.getByRole('link', { name: /^Clubs/ }).click();
+    await expect(page.getByRole('heading', { level: 1, name: /^Clubs/ })).toBeVisible();
+
+    await page.goBack();
+    await expect(main.getByRole('group', { name: 'Visitors' })).toBeVisible();
+    await expect(main.getByRole('radio', { name: '7 days' })).toBeChecked();
+  });
+});

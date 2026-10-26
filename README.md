@@ -49,6 +49,15 @@ product's server environment:
 
 If a product rejects the token it shows "Token rejected" and the others keep working.
 
+### Analytics
+
+Each product's page opens with its Google Analytics figures for the last 7, 30 or 90 days:
+visitors, page views and, where the product tracks them, enquiries. The product's server
+reads Google Analytics and serves the numbers from `GET /api/admin/analytics` (spec §6.7),
+so the dashboard never holds a Google credential. A product that hasn't built the route
+says "Analytics isn't available from <product> yet", and one with no Google Analytics set
+up shows its own note about what to set.
+
 ## Deploy
 
 A push to `main` runs `.github/workflows/deploy.yml` ("Deploy interacti admin"): it

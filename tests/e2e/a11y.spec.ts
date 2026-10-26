@@ -43,6 +43,8 @@ test.describe('axe: no violations', () => {
     await signIn(page);
     await page.goto('/strive');
     await expect(page.getByRole('main').getByRole('link', { name: /^Clubs/ })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Visitors' })).toBeVisible();
+    await expect(page.getByRole('img', { name: /per day, last 30 days/ })).toBeVisible();
     await expectNoViolations(page);
   });
 
