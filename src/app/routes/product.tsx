@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
+import { AnalyticsSection } from '@/components/analytics-section';
 import { StateMessage } from '@/components/state-message';
 import { productBySlug, type ProductConfig } from '@/config/products';
 import { useManifestQuery } from '@/hooks/queries/use-manifest';
@@ -44,6 +45,7 @@ function ProductScreen({ product }: { product: ProductConfig }) {
   if (manifest.data) {
     body = (
       <div className="grid gap-10">
+        <AnalyticsSection product={product} />
         {groupResources(manifest.data.resources).map(({ group, resources }) => (
           <section key={group} className="grid gap-3">
             <h2 className="text-micro font-normal text-ink/50">{group}</h2>

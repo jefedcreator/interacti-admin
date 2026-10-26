@@ -14,6 +14,8 @@ interface StatTileProps {
 export function StatTile({ label, count, previous, days, wide = false }: StatTileProps) {
   return (
     <div
+      role="group"
+      aria-label={label}
       className={cn(
         'grid min-w-0 content-between gap-4 rounded-[var(--radius-control)] border border-ink/10 p-5',
         wide && 'col-span-2',
