@@ -1,7 +1,9 @@
 import type { AxiosInstance } from 'axios';
 import type {
+  AdminAnalytics,
   AdminManifest,
   AdminRecord,
+  AnalyticsDays,
   ApiResponse,
   ListParams,
   PaginatedApiResponse,
@@ -49,6 +51,11 @@ export function adminApi(client: AxiosInstance) {
         }
         throw failure;
       }
+    },
+
+    async analytics(days: AnalyticsDays): Promise<AdminAnalytics> {
+      const res = await run(() => client.get<ApiResponse<AdminAnalytics>>(`/analytics?days=${days}`));
+      return res.data.data;
     },
 
     async list(

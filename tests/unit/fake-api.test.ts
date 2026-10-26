@@ -1,9 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import type { AdminManifest, AdminRecord, PaginatedApiResponse } from '@/types/admin';
+import type {
+  AdminAnalytics,
+  AdminManifest,
+  AdminRecord,
+  PaginatedApiResponse,
+} from '@/types/admin';
 import { createFakeAdminApi, type FakeResponse } from '../fake-api/fake-admin-api';
 import { FAKE_TOKEN } from '../fake-api/fixture';
 
-function setup(options: { referenced?: Set<string>; rejectSortBy?: string[] } = {}) {
+function setup(
+  options: {
+    referenced?: Set<string>;
+    rejectSortBy?: string[];
+    now?: Date;
+    analytics?: 'configured' | 'not-configured';
+  } = {},
+) {
   const api = createFakeAdminApi({ token: FAKE_TOKEN, product: 'strive', ...options });
   const call = (
     method: string,
@@ -223,5 +235,46 @@ describe('the fake admin API', () => {
       '/api/admin/clubs?page=2',
       '/api/admin',
     ]);
+  });
+});
+
+describe('the fake admin API: analytics', () => {
+  const NOW = new Date('2026-10-22T12:00:00Z');
+  const analytics = (res: FakeResponse) => (res.body as { data: AdminAnalytics }).data;
+
+  it('gives every series one point per day, ending today in UTC', () => {
+    const { call } = setup({ now: NOW });
+    const res = call('GET', '/api/admin/analytics', { search: '?days=7' });
+    expect(res.status).toBe(200);
+    const data = analytics(res);
+    expect(data.days).toBe(7);
+    expect(data.configured).toBe(true);
+    expect(data.series.length).toBeGreaterThan(0);
+    for (const line of data.series) {
+      expect(line.points).toHaveLength(7);
+      expect(line.points.at(-1)?.date).toBe('2026-10-22');
+      expect(line.points[0]?.date).toBe('2026-10-16');
+    }
+  });
+
+  it('refuses a period that is not 7, 30 or 90, and any other parameter', () => {
+    const { call } = setup({ now: NOW });
+    expect(call('GET', '/api/admin/analytics', { search: '?days=5' }).status).toBe(422);
+    expect(call('GET', '/api/admin/analytics', { search: '?days=7&x=1' }).status).toBe(422);
+    expect(call('GET', '/api/admin/analytics').status).toBe(422);
+  });
+
+  it('answers 401 without the token', () => {
+    const { call } = setup({ now: NOW });
+    expect(call('GET', '/api/admin/analytics', { search: '?days=7', token: null }).status).toBe(401);
+  });
+
+  it('says it is not set up, in the product\'s own words, when asked to', () => {
+    const { call } = setup({ now: NOW, analytics: 'not-configured' });
+    const data = analytics(call('GET', '/api/admin/analytics', { search: '?days=30' }));
+    expect(data.configured).toBe(false);
+    expect(data.metrics).toEqual([]);
+    expect(data.series).toEqual([]);
+    expect(data.note).toBeTruthy();
   });
 });

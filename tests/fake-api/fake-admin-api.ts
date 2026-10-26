@@ -1,6 +1,7 @@
 // A framework-free, in-memory fake of the admin contract (spec §6). Nothing here imports MSW or
 // Playwright: `msw.ts` wraps it for Vitest, and the e2e tests wrap the same object for `page.route`.
 import type {
+  AdminAnalytics,
   AdminFieldMeta,
   AdminManifest,
   AdminRecord,
@@ -37,6 +38,10 @@ export type FakeAdminApiOptions = {
   referenced?: Set<string>;
   /** Field names that answer 422 when used as `sortBy`, even if the manifest lists them. */
   rejectSortBy?: string[];
+  /** What "today" is for analytics windows. Defaults to the real clock. */
+  now?: Date;
+  /** `'not-configured'` answers as a product with no Google Analytics. Defaults to configured. */
+  analytics?: 'configured' | 'not-configured';
 };
 
 export type FakeAdminApi = {
@@ -113,7 +118,14 @@ function typeProblem(f: AdminFieldMeta, value: unknown): string | null {
 }
 
 export function createFakeAdminApi(options: FakeAdminApiOptions): FakeAdminApi {
-  const { token, product, referenced = new Set<string>(), rejectSortBy = [] } = options;
+  const {
+    token,
+    product,
+    referenced = new Set<string>(),
+    rejectSortBy = [],
+    now,
+    analytics: analyticsMode = 'configured',
+  } = options;
 
   const base = fakeManifest(product);
   const metas = base.resources;
@@ -195,6 +207,62 @@ export function createFakeAdminApi(options: FakeAdminApiOptions): FakeAdminApi {
       totalPages: Math.ceil(total / size),
     };
     return reply(200, body);
+  }
+
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const PERIODS = [7, 30, 90];
+
+  /** Fixed numbers, so a test can name them: the series wobble, the totals don't. */
+  function analytics(search: string): FakeResponse {
+    const params = new URLSearchParams(search);
+    for (const key of params.keys()) if (key !== 'days') return invalidQuery(key);
+    const days = Number(params.get('days'));
+    if (!PERIODS.includes(days)) return invalidQuery('days');
+
+    const window = days as AdminAnalytics['days'];
+    let data: AdminAnalytics;
+    if (analyticsMode === 'not-configured') {
+      data = {
+        days: window,
+        configured: false,
+        note: 'Set GA_PROPERTY_ID and GA_SERVICE_ACCOUNT_JSON on the server and restart it.',
+        metrics: [],
+        series: [],
+      };
+    } else {
+      const today = Date.UTC(
+        (now ?? new Date()).getUTCFullYear(),
+        (now ?? new Date()).getUTCMonth(),
+        (now ?? new Date()).getUTCDate(),
+      );
+      const dates = Array.from({ length: window }, (_, i) =>
+        new Date(today - (window - 1 - i) * DAY_MS).toISOString().slice(0, 10),
+      );
+      data = {
+        days: window,
+        configured: true,
+        note: 'Google Analytics can lag by up to a day.',
+        metrics: [
+          { key: 'visitors', label: 'Visitors', count: 5265, previous: 4100 },
+          { key: 'views', label: 'Page views', count: 7596, previous: 7596 },
+          { key: 'enquiries', label: 'Enquiries', count: 8, previous: 0 },
+        ],
+        series: [
+          {
+            key: 'visitors',
+            label: 'Visitors',
+            points: dates.map((date, i) => ({ date, count: 100 + ((i * 37) % 60) })),
+          },
+          {
+            key: 'views',
+            label: 'Page views',
+            points: dates.map((date, i) => ({ date, count: 150 + ((i * 53) % 90) })),
+          },
+        ],
+      };
+    }
+    const res: ApiResponse<AdminAnalytics> = { status: 200, message: 'OK', data };
+    return reply(200, res);
   }
 
   /** The first thing wrong with a create or update body, or null. */
@@ -312,6 +380,11 @@ export function createFakeAdminApi(options: FakeAdminApiOptions): FakeAdminApi {
       if (method !== 'GET') return fail(405, 'Method not allowed');
       const res: ApiResponse<AdminManifest> = { status: 200, message: 'OK', data: manifest() };
       return reply(200, res);
+    }
+
+    if (segments[0] === 'analytics' && segments.length === 1) {
+      if (method !== 'GET') return fail(405, 'Method not allowed');
+      return analytics(req.search);
     }
 
     const meta = metaOf(segments[0] ?? '');

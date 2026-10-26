@@ -219,3 +219,29 @@ describe('error mapping', () => {
     });
   });
 });
+
+describe('analytics', () => {
+  it('asks for the period and returns the unwrapped answer', async () => {
+    const data = await api.analytics(30);
+    expect(fake.requests.at(-1)?.path).toBe('/api/admin/analytics');
+    expect(fake.requests.at(-1)?.search).toBe('?days=30');
+    expect(data.days).toBe(30);
+    expect(data.metrics.map((m) => m.key)).toEqual(['visitors', 'views', 'enquiries']);
+  });
+
+  it('rejects a product that has no analytics route as not-found', async () => {
+    server.use(http.get(`${ORIGIN}/api/admin/analytics`, () => HttpResponse.json({}, { status: 404 })));
+    expect((await failure(api.analytics(7))).kind).toBe('not-found');
+  });
+
+  it("carries the product's message when Google fails upstream", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/admin/analytics`, () =>
+        HttpResponse.json({ message: 'Quota exceeded' }, { status: 502 }),
+      ),
+    );
+    const error = await failure(api.analytics(7));
+    expect(error.kind).toBe('server');
+    expect(error.message).toBe('Quota exceeded');
+  });
+});

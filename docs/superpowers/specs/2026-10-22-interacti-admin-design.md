@@ -47,7 +47,7 @@ A private web app where the owner manages the data of every interacti product fr
 5. It looks and reads like interacti: the landing's colour, type and logo (Decided), applied to a working tool (§9).
 6. A model added to a product later shows up once it's registered in that product, with no dashboard release, and a model nobody registered fails that product's tests (§7.1).
 
-**Non-goals (v1):** roles or more than one admin; an audit log beyond each product's existing request log; bulk edit or bulk delete; CSV or PDF export (Dandys has both; Call: left out until it's needed); charts or metrics; file uploads (image fields take a URL); acting as a user; editing the landing page; live updates.
+**Non-goals (v1):** roles or more than one admin; an audit log beyond each product's existing request log; bulk edit or bulk delete; CSV or PDF export (Dandys has both; Call: left out until it's needed); file uploads (image fields take a URL); acting as a user; editing the landing page; live updates.
 
 **Anti-goals: failure even if it works**
 - The admin can read or write a credential: a password hash, an OAuth or API token, a session token, an encrypted mailbox credential or a token hash.
@@ -212,6 +212,24 @@ Errors use the product's own shape: `{ message }`, or Parcours' envelope with `s
 | 422 | Validation: `path: message`, as everywhere |
 | 500 | Anything else, reported to Sentry by `withMiddleware` as today |
 
+### 6.7 Analytics
+
+- **Route:** `GET /api/admin/analytics?days=7|30|90`, bearer-protected like every route. 200 `ApiResponse<AdminAnalytics>`. `OPTIONS` answers 204.
+- **Window:** `days` whole UTC days ending today inclusive. `previous` is the same number of days immediately before it. `points` has one entry per window day, `date` as `YYYY-MM-DD`.
+- **Source:** Google Analytics 4, read by the product's server. The credential is a server environment variable and is never returned, logged or placed in an error.
+- **Not set up:** a product with no Google Analytics answers 200 with `configured: false`, empty `metrics` and `series`, and a `note` that says what to set. A product that tracks no enquiries sends no enquiries metric. Google failing answers 502 with `{ message }`.
+- **Parameters:** `days` outside 7, 30 and 90, and any other parameter, answer 422 (`.strict()`, as §6.5). The key `analytics` is reserved: no resource may use it.
+
+```ts
+interface AdminAnalytics {
+  days: 7 | 30 | 90;
+  configured: boolean;                     // false: the product has no Google Analytics set up
+  note: string | null;                     // the product's own words: what's missing, or that GA lags
+  metrics: { key: string; label: string; count: number; previous: number }[];  // tiles in order; the first is the headline; absent = not tracked
+  series: { key: string; label: string; points: { date: string; count: number }[] }[];  // chart lines, at most two; oldest first
+}
+```
+
 ## 7. What each product exposes (Call: every row)
 
 ### 7.1 Rules for every product
@@ -348,7 +366,7 @@ Excluded: `VerificationToken` (sign-in tokens with no single id).
 |---|---|
 | `/signin` | The logo, the eyebrow "Admin", one field "Admin token", and "Sign in". It returns to `?next=` afterwards |
 | `/` | Products: a card per product with its tile, name, status ("● Live · SaaS", "○ Coming soon · AI"), and connection: "14 resources · 2,340 records", "Not connected", "Needs HTTPS", "Couldn't reach it", "Admin is off" or "Token rejected" |
-| `/:product` | The product's resources by group, each with its record count |
+| `/:product` | Analytics for the last 7, 30 or 90 days, then the product's resources by group, each with its record count |
 | `/:product/:resource` | The table (§8.2) |
 | `/:product/:resource/:key` | The table with the record's view over it (§8.3) |
 
@@ -461,6 +479,7 @@ Every dialog in the app uses it: the record view, create and edit, and delete.
   Numbers in tables use `tabular-nums`.
 - **The logo:** the kit's white logo, `landing/brand/interacti/logo-white.svg`, copied unmodified and shown in an `<img>`, because it only ever appears on black. It's at least 72px wide, and never retyped, redrawn, stretched or recoloured. The favicon is `brand/interacti/favicon.svg`. Nothing animates it here, so the dancing i stays in its `arch-back` pose.
 - **Status markers:** the landing's filled dot ● for live and hollow dot ○ for coming soon. Enum values are monochrome pills.
+- **Analytics:** tiles and chart are white on black with 10% hairlines. A change reads `↑ 12%`, `↓ 8%`, `New`, `No change` or `No activity`, never in colour. The chart's first line is 80% and solid, its second 50% and dashed, over 10% gridlines, with a text legend.
 - **Glyphs, not an icon set (Call):** ↗ ↓ → ← ↑ × ⋯, as on the landing.
 - **Shape:** modals take the landing's 24px `--radius-sheet`, on the top corners only as a phone bottom sheet and on all four as a panel. Controls have a new `--radius-control: 0.75rem`. The gutter is the landing's `--gutter: max(16px, 2.2vw)`.
 - **Motion:** modals move as Sara's do.
