@@ -257,6 +257,26 @@ describe('the fake admin API: analytics', () => {
     }
   });
 
+  it("the fake's analytics answer has the response shape the backends promise", () => {
+    const { call } = setup({ now: NOW });
+    const data = analytics(call('GET', '/api/admin/analytics', { search: '?days=7' }));
+
+    expect(Object.keys(data)).toEqual(['days', 'configured', 'note', 'metrics', 'series']);
+    expect(data.metrics.map((metric) => metric.key)).toEqual([
+      'visitors',
+      'views',
+      'enquiries',
+    ]);
+    for (const metric of data.metrics) {
+      expect(Object.keys(metric)).toEqual(['key', 'label', 'count', 'previous']);
+    }
+    expect(data.series.map((line) => line.key)).toEqual(['visitors', 'views']);
+    for (const line of data.series) {
+      expect(Object.keys(line)).toEqual(['key', 'label', 'points']);
+      expect(Object.keys(line.points[0]!)).toEqual(['date', 'count']);
+    }
+  });
+
   it('refuses a period that is not 7, 30 or 90, and any other parameter', () => {
     const { call } = setup({ now: NOW });
     expect(call('GET', '/api/admin/analytics', { search: '?days=5' }).status).toBe(422);

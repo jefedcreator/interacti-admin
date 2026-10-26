@@ -58,6 +58,14 @@ so the dashboard never holds a Google credential. A product that hasn't built th
 says "Analytics isn't available from <product> yet", and one with no Google Analytics set
 up shows its own note about what to set.
 
+Each product's server reads three optional variables: `GA_PROPERTY_ID` (the numeric GA4
+property id, not the `G-…` measurement id), `GA_SERVICE_ACCOUNT_B64` (the base64-encoded
+service-account JSON key, made with `base64 -i key.json | tr -d '\n'`) and, only where
+enquiries are tracked, `GA_ENQUIRY_EVENT` (the GA event name). The endpoint answers
+`configured: false` with a note naming what to set until they are. The owner checklist in
+[the implementation plan](docs/superpowers/plans/2026-10-26-product-analytics-backends.md)
+lists the Google Cloud, GA4 access and repository-secret steps.
+
 ## Deploy
 
 A push to `main` runs `.github/workflows/deploy.yml` ("Deploy interacti admin"): it

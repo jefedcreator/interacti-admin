@@ -92,6 +92,7 @@ admin.interacti.<host>   static app: Vite, React, TypeScript, Tailwind, TanStack
 | Method and path | Does | Success |
 |---|---|---|
 | `GET /api/admin` | The manifest: every resource, its fields and its record count | 200 `ApiResponse<AdminManifest>` |
+| `GET /api/admin/analytics?days=7\|30\|90` | Google Analytics visitors, page views and (where tracked) enquiries for the window | 200 `ApiResponse<AdminAnalytics>` |
 | `GET /api/admin/:resource` | One page of records | 200 `PaginatedApiResponse<AdminRecord[]>` |
 | `POST /api/admin/:resource` | Create a record | 201 `ApiResponse<AdminRecord>` |
 | `GET /api/admin/:resource/:key` | One record | 200 `ApiResponse<AdminRecord>` |
@@ -507,7 +508,7 @@ Every dialog in the app uses it: the record view, create and edit, and delete.
 
   Shared tools pin the versions the landing uses: Vite, TypeScript, Tailwind, Vitest, happy-dom and Playwright.
 - **Following the products' frontend guides:**
-  - a query key factory, `adminKeys`, with `all`, `manifest(product)`, `lists(product, resource)`, `list(…)` and `detail(…)`, as in the Sara and Parcours guides;
+  - a query key factory, `adminKeys`, with `all`, `manifest(product)`, `analytics(product, days)`, `lists(product, resource)`, `list(…)` and `detail(…)`, as in the Sara and Parcours guides;
   - query hooks in `src/hooks/queries/` and mutation hooks in `src/hooks/mutations/` that invalidate the list, the detail and the manifest (counts) on success;
   - no optimistic updates, no `setQueryData` and no `placeholderData`;
   - mutation errors toast the API's `message` or a fallback that names the action;
