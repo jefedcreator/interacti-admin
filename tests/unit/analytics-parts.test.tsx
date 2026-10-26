@@ -88,11 +88,11 @@ describe('AnalyticsChart', () => {
   const visitors = days7([0, 1, 2, 3, 4, 5, 6]);
   const views = days7([2, 4, 6, 8, 10, 12, 14], 'views', 'Page views');
 
-  it('names itself with its legend, its period and each total', () => {
+  it('names itself with its legend, its period and the range of each line, never a sum', () => {
     render(<AnalyticsChart series={[visitors, views]} days={7} />);
     expect(
       screen.getByRole('img', {
-        name: 'Visitors and Page views per day, last 7 days: Visitors 21 in total, Page views 56 in total',
+        name: 'Visitors and Page views per day, last 7 days: Visitors from 0 to 6, highest on 22 Oct; Page views from 2 to 14, highest on 22 Oct',
       }),
     ).toBeInTheDocument();
   });

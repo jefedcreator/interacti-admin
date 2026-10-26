@@ -102,7 +102,7 @@ export function AnalyticsSection({ product }: { product: ProductConfig }) {
       body = (
         <Problem
           title="Couldn't load analytics."
-          detail={error.kind === 'server' ? error.message : undefined}
+          detail={error.message}
           action={
             <Button variant="secondary" size="sm" onClick={() => void query.refetch()}>
               Try again

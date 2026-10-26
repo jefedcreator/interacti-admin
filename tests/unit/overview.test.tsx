@@ -206,7 +206,13 @@ describe('product page: analytics', () => {
     expect(enquiries.getByText('New')).toBeInTheDocument();
 
     expect(main.getByRole('heading', { name: 'Visitors & Page views' })).toBeInTheDocument();
-    expect(main.getByRole('img', { name: /^Visitors and Page views per day, last 30 days/ })).toBeInTheDocument();
+    // The daily rows can't be summed into the tile's figure (a returning visitor counts once a
+    // day), so the chart's name describes the shape of each line and claims no total.
+    expect(
+      main.getByRole('img', {
+        name: 'Visitors and Page views per day, last 30 days: Visitors from 100 to 157, highest on 13 Oct; Page views from 150 to 236, highest on 14 Oct',
+      }),
+    ).toBeInTheDocument();
     expect(main.getByText('Google Analytics can lag by up to a day.')).toBeInTheDocument();
   });
 
@@ -315,6 +321,17 @@ describe('product page: analytics', () => {
 
     await user.click(main.getByRole('button', { name: 'Try again' }));
     await waitFor(() => expect(calls).toBeGreaterThan(before));
+  });
+
+  it("shows the product's message whatever the failure, not only a server one", async () => {
+    server.use(
+      http.get(ANALYTICS, () => HttpResponse.json({ message: 'days: Invalid option' }, { status: 422 })),
+    );
+    renderApp('/strive');
+    const main = within(await screen.findByRole('main'));
+
+    expect(await main.findByText("Couldn't load analytics.")).toBeInTheDocument();
+    expect(main.getByText('days: Invalid option')).toBeInTheDocument();
   });
 
   it('shows no analytics for a product that is not connected', async () => {

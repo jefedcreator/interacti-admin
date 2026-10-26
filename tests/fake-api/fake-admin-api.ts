@@ -212,7 +212,10 @@ export function createFakeAdminApi(options: FakeAdminApiOptions): FakeAdminApi {
   const DAY_MS = 24 * 60 * 60 * 1000;
   const PERIODS = [7, 30, 90];
 
-  /** Fixed numbers, so a test can name them: the series wobble, the totals don't. */
+  /**
+   * Fixed numbers, so a test can name them: the series wobble, the totals don't. The window ends
+   * yesterday, the last complete day (spec §6.7).
+   */
   function analytics(search: string): FakeResponse {
     const params = new URLSearchParams(search);
     for (const key of params.keys()) if (key !== 'days') return invalidQuery(key);
@@ -236,7 +239,7 @@ export function createFakeAdminApi(options: FakeAdminApiOptions): FakeAdminApi {
         (now ?? new Date()).getUTCDate(),
       );
       const dates = Array.from({ length: window }, (_, i) =>
-        new Date(today - (window - 1 - i) * DAY_MS).toISOString().slice(0, 10),
+        new Date(today - (window - i) * DAY_MS).toISOString().slice(0, 10),
       );
       data = {
         days: window,

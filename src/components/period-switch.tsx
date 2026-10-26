@@ -29,8 +29,10 @@ export function PeriodSwitch({ value, onChange }: PeriodSwitchProps) {
           />
           <span
             className={cn(
-              'flex min-h-9 cursor-pointer items-center rounded-full px-4 text-micro whitespace-nowrap text-ink/50 transition-colors duration-300 hover:text-ink',
-              'peer-checked:bg-ink peer-checked:font-medium peer-checked:text-ground',
+              'flex min-h-9 cursor-pointer items-center rounded-full px-4 text-micro whitespace-nowrap transition-colors duration-300',
+              // Chosen in JS, not with peer-checked: a hover rule of equal specificity would win
+              // and turn the checked label white on its own white pill.
+              value === days ? 'bg-ink font-medium text-ground' : 'text-ink/50 hover:text-ink',
               'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-ink',
             )}
           >

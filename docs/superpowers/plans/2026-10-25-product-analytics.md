@@ -89,11 +89,11 @@
   };
   ```
 - Produces: `adminApi(client).analytics(days: AnalyticsDays): Promise<AdminAnalytics>`; `adminKeys.analytics(product: ProductSlug, days: AnalyticsDays): string[]`; `useAnalyticsQuery(slug: ProductSlug, days: AnalyticsDays): UseQueryResult<AdminAnalytics, AdminApiError>`.
-- Produces: `FakeAdminApiOptions.analytics?: 'configured' | 'not-configured'` (default `'configured'`) and a handled route `GET /api/admin/analytics`. The fake returns fixed numbers: metrics `visitors` "Visitors" 5265 vs 4100, `views` "Page views" 7596 vs 7596, `enquiries` "Enquiries" 8 vs 0; series `visitors` and `views` with `days` points each ending today (UTC).
+- Produces: `FakeAdminApiOptions.analytics?: 'configured' | 'not-configured'` (default `'configured'`) and a handled route `GET /api/admin/analytics`. The fake returns fixed numbers: metrics `visitors` "Visitors" 5265 vs 4100, `views` "Page views" 7596 vs 7596, `enquiries` "Enquiries" 8 vs 0; series `visitors` and `views` with `days` points each ending yesterday.
 
 - [ ] **Step 1: Amend the spec.** In §3 delete "charts or metrics; " from the non-goals. Add §6.7 "Analytics" after §6.6 stating exactly:
   - `GET /api/admin/analytics?days=7|30|90`, bearer-protected like every route, 200 `ApiResponse<AdminAnalytics>`, `OPTIONS` answers 204.
-  - A window is `days` whole UTC days ending today inclusive; `previous` is the same number of days immediately before it. `points` has one entry per window day, `date` as `YYYY-MM-DD`.
+  - A window is `days` whole days ending yesterday, the last complete day, in the property's reporting time zone; `previous` is the same number of days immediately before it. `points` has one entry per window day, `date` as `YYYY-MM-DD`; a day GA has no row for is sent as 0.
   - Numbers come from Google Analytics 4, read by the product's server; the credential is a server environment variable and is never returned, logged or placed in an error.
   - A product with no GA set up answers 200 with `configured: false`, empty `metrics` and `series`, and a `note` that says what to set. A product that tracks no enquiries sends no enquiries metric. GA failing answers 502 with `{ message }`.
   - `days` outside 7, 30, 90 and any other parameter answer 422 (`.strict()`, as §6.5). The key `analytics` is reserved: no resource may use it.
@@ -101,7 +101,7 @@
 
 - [ ] **Step 2: Write failing tests.**
   - `api.test.ts`: `api.analytics(30)` sends `GET /analytics?days=30` and returns the unwrapped `data`; a 404 rejects with `kind === 'not-found'`; a 502 with `{ message: 'Quota exceeded' }` rejects with that message.
-  - `fake-api.test.ts` (fake pinned with `now: new Date('2026-10-22T12:00:00Z')`): `days=7` returns every series with 7 points whose last date is `2026-10-22`; `days=5` and `?days=7&x=1` answer 422; a missing token answers 401; with `analytics: 'not-configured'` the answer is `configured: false`, `metrics: []`, `series: []` and a non-empty `note`.
+  - `fake-api.test.ts` (fake pinned with `now: new Date('2026-10-22T12:00:00Z')`): `days=7` returns every series with 7 points whose last date is `2026-10-21`; `days=5` and `?days=7&x=1` answer 422; a missing token answers 401; with `analytics: 'not-configured'` the answer is `configured: false`, `metrics: []`, `series: []` and a non-empty `note`.
 
 - [ ] **Step 3: Run them to see them fail.** `yarn test tests/unit/api.test.ts tests/unit/fake-api.test.ts`. Expected: FAIL (`analytics` is not a function; the fake answers 404).
 
@@ -163,7 +163,7 @@
 - [ ] **Step 1: Write failing tests.**
   - `PeriodSwitch`: renders a `radiogroup` named "Period" with radios "7 days", "30 days", "90 days"; the one matching `value` is checked; arrow keys move the selection and call `onChange` with the new number (assert on `aria-checked` and calls, not class names).
   - `StatTile` (`count 7596, previous 7000, days 30`): shows the label, `7,596`, `↑ 9%` and `vs previous 30 days`; `previous 0` shows `New`; `wide` makes the tile span both columns.
-  - `AnalyticsChart` with the fake's two series: one `role="img"` whose accessible name states the legend labels, the period and each series' total (`Visitors and Page views per day, last 30 days: Visitors 5,265 in total, Page views 7,596 in total`); a legend with both labels as visible text; the shared peak value and the first and last dates as visible text; an all-zero series, an empty `points` array and two series of different lengths render with no `NaN` in any `d` attribute; the second series' path has a `stroke-dasharray` and the first does not.
+  - `AnalyticsChart` with the fake's two series: one `role="img"` whose accessible name states the legend labels, the period and each line's lowest and highest day (`Visitors and Page views per day, last 7 days: Visitors from 0 to 6, highest on 22 Oct; Page views from 2 to 14, highest on 22 Oct`), never a sum; a legend with both labels as visible text; the shared peak value and the first and last dates as visible text; an all-zero series, an empty `points` array and two series of different lengths render with no `NaN` in any `d` attribute; the second series' path has a `stroke-dasharray` and the first does not.
   - `useDays`, rendered in a `MemoryRouter` at `/strive?days=7&x=1`: returns `7`; calling the setter with `90` navigates to `/strive?days=90&x=1` by replace (history length unchanged).
 
 - [ ] **Step 2: Run to see them fail.** `yarn test tests/unit/analytics-parts.test.tsx`. Expected: FAIL.
@@ -236,7 +236,7 @@ States, in order: loading (skeleton tiles and chart block, `aria-busy`); error; 
 Each of `0nbox`, `strive`, `parcours`, `sara` and `fluid` needs the same pieces, with spec §6.7 as its test:
 
 1. **Environment** (`src/env.js`, `.env.example`, `deploy/README.md`): `GA_PROPERTY_ID` (numeric), `GA_SERVICE_ACCOUNT_JSON` (secret), optional `GA_ENQUIRY_EVENT`. All unset means `configured: false`.
-2. **Service** in `src/backend/admin/kit/`: `analytics(days, now)` through `BetaAnalyticsDataClient.runReport`, three reports per call: this window's totals, the previous window's totals (metrics `totalUsers` "Visitors" and `screenPageViews` "Page views", plus `eventCount` filtered to `GA_ENQUIRY_EVENT` as "Enquiries" when set), and a per-day report with the `date` dimension for the two chart series. Totals must come from no-dimension reports: unique visitors cannot be summed from daily rows. Cache each answer in process for 15 minutes to respect GA quota; map any GA failure to a 502 with a message that never contains the credential.
+2. **Service** in `src/backend/admin/kit/`: `analytics(days, now)` through `BetaAnalyticsDataClient.runReport`, three reports per call: this window's totals, the previous window's totals (metrics `totalUsers` "Visitors" and `screenPageViews` "Page views", plus `eventCount` filtered to `GA_ENQUIRY_EVENT` as "Enquiries" when set), and a per-day report with the `date` dimension for the two chart series, filling any day GA omits with 0. Totals must come from no-dimension reports: unique visitors cannot be summed from daily rows. Cache each answer in process for 15 minutes to respect GA quota; map any GA failure to a 502 with a message that never contains the credential.
 3. **Route** `src/app/api/admin/analytics/route.ts`: `GET` and `OPTIONS` through `adminRoute`, `withMiddleware` and `adminAuthMiddleware`, exactly as `src/app/api/admin/route.ts`; a strict Zod schema on the query (`days` is 7, 30 or 90; nothing else).
 4. **Tests:** the response never contains `GA_SERVICE_ACCOUNT_JSON` or any part of it, `days=5` and an unknown parameter answer 422, no token answers 401, and a registry test fails when a resource is keyed `analytics`.
 5. **`public/openapi.json`** entry for the route. For Parcours, Sara and Fluid, which load no GA tag today, the route answers `configured: false` with a note until a tag and a property exist.

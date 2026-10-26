@@ -215,7 +215,7 @@ Errors use the product's own shape: `{ message }`, or Parcours' envelope with `s
 ### 6.7 Analytics
 
 - **Route:** `GET /api/admin/analytics?days=7|30|90`, bearer-protected like every route. 200 `ApiResponse<AdminAnalytics>`. `OPTIONS` answers 204.
-- **Window:** `days` whole UTC days ending today inclusive. `previous` is the same number of days immediately before it. `points` has one entry per window day, `date` as `YYYY-MM-DD`.
+- **Window:** `days` whole days ending yesterday, the last complete day, in the property's reporting time zone (GA4 reports in that zone, not UTC). Ending on a complete day keeps a half-counted today from reading as a fall. `previous` is the same number of days immediately before it. `points` has one entry per window day, `date` as `YYYY-MM-DD`; a day GA has no row for is sent as 0.
 - **Source:** Google Analytics 4, read by the product's server. The credential is a server environment variable and is never returned, logged or placed in an error.
 - **Not set up:** a product with no Google Analytics answers 200 with `configured: false`, empty `metrics` and `series`, and a `note` that says what to set. A product that tracks no enquiries sends no enquiries metric. Google failing answers 502 with `{ message }`.
 - **Parameters:** `days` outside 7, 30 and 90, and any other parameter, answer 422 (`.strict()`, as §6.5). The key `analytics` is reserved: no resource may use it.

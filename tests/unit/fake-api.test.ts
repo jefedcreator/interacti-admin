@@ -242,7 +242,7 @@ describe('the fake admin API: analytics', () => {
   const NOW = new Date('2026-10-22T12:00:00Z');
   const analytics = (res: FakeResponse) => (res.body as { data: AdminAnalytics }).data;
 
-  it('gives every series one point per day, ending today in UTC', () => {
+  it('gives every series one point per day, ending on the last complete day', () => {
     const { call } = setup({ now: NOW });
     const res = call('GET', '/api/admin/analytics', { search: '?days=7' });
     expect(res.status).toBe(200);
@@ -252,8 +252,8 @@ describe('the fake admin API: analytics', () => {
     expect(data.series.length).toBeGreaterThan(0);
     for (const line of data.series) {
       expect(line.points).toHaveLength(7);
-      expect(line.points.at(-1)?.date).toBe('2026-10-22');
-      expect(line.points[0]?.date).toBe('2026-10-16');
+      expect(line.points.at(-1)?.date).toBe('2026-10-21');
+      expect(line.points[0]?.date).toBe('2026-10-15');
     }
   });
 

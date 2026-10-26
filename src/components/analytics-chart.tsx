@@ -13,8 +13,20 @@ function dayLabel(date: string | undefined): string {
   return Number.isNaN(parsed.getTime()) ? date : shortDate.format(parsed);
 }
 
-const total = (series: AnalyticsSeries): number =>
-  series.points.reduce((sum, point) => sum + point.count, 0);
+/**
+ * A line's shape in words: its lowest and highest day and when the highest was. Never a sum: the
+ * daily rows of a figure like unique visitors don't add up to the tile's number.
+ */
+function describeLine(line: AnalyticsSeries): string {
+  if (line.points.length === 0) return `${line.label} has no data`;
+  let top = line.points[0];
+  let low = line.points[0]?.count ?? 0;
+  for (const point of line.points) {
+    if (point.count > (top?.count ?? 0)) top = point;
+    low = Math.min(low, point.count);
+  }
+  return `${line.label} from ${formatCount(low)} to ${formatCount(top?.count ?? 0)}, highest on ${dayLabel(top?.date)}`;
+}
 
 /** The first line is 80% and solid, the second 50% and dashed. Told apart without colour. */
 const LINES = [
@@ -40,8 +52,8 @@ export function AnalyticsChart({ series, days }: AnalyticsChartProps) {
   );
 
   const name = `${drawn.map((line) => line.label).join(' and ')} per day, last ${days} days: ${drawn
-    .map((line) => `${line.label} ${formatCount(total(line))} in total`)
-    .join(', ')}`;
+    .map(describeLine)
+    .join('; ')}`;
 
   return (
     <div data-testid="analytics-chart" className="grid gap-3">

@@ -112,3 +112,27 @@ test.describe('focus outlines in modals: black, on white', () => {
     await expectBlackOutlines(page);
   });
 });
+
+test.describe('the period switch under the pointer', () => {
+  test('the checked period stays readable while it is hovered', async ({ page }, info) => {
+    test.skip(!['desktop', 'reduced'].includes(info.project.name), 'needs a pointer that hovers');
+
+    await signIn(page);
+    await page.goto('/strive');
+    const checked = page.getByText('30 days', { exact: true });
+    await expect(checked).toBeVisible();
+    await settled(page);
+
+    await checked.hover();
+    await settled(page);
+
+    const { color, background } = await checked.evaluate((el) => ({
+      color: getComputedStyle(el).color,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+    expect(color, 'the label took the colour of its own pill').not.toBe(background);
+    expect(color).toBe('rgb(0, 0, 0)');
+    expect(background).toBe('rgb(255, 255, 255)');
+  });
+});
+
