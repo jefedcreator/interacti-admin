@@ -76,23 +76,22 @@ describe('overview', () => {
 });
 
 describe('product page', () => {
-  it("lists the product's resources by group, each with its count", async () => {
+  it('shows the product name, field, and live status in the compact header', async () => {
     renderApp('/strive');
 
     const main = within(await screen.findByRole('main'));
     expect(main.getByRole('heading', { level: 1, name: 'Strive' })).toBeInTheDocument();
-    expect(main.getByText('SaaS · Live')).toBeInTheDocument();
+    expect(main.getByText('SaaS')).toBeInTheDocument();
+    expect(main.getByText('Live')).toBeInTheDocument();
+  });
 
-    expect(await main.findByRole('heading', { name: 'People' })).toBeInTheDocument();
-    expect(main.getByRole('heading', { name: 'Clubs' })).toBeInTheDocument();
-    expect(main.getByRole('heading', { name: 'Sign-in' })).toBeInTheDocument();
+  it('locks the product home to the viewport height so the page never scrolls', async () => {
+    renderApp('/strive');
 
-    expect(main.getByRole('link', { name: 'Users 3' })).toHaveAttribute('href', '/strive/users');
-    expect(main.getByRole('link', { name: 'Clubs 45' })).toHaveAttribute('href', '/strive/clubs');
-    expect(main.getByRole('link', { name: 'Sessions 2' })).toHaveAttribute(
-      'href',
-      '/strive/sessions',
-    );
+    const main = await screen.findByRole('main');
+    const home = main.querySelector('section');
+
+    expect(home).toHaveClass('h-[100dvh]', 'max-h-[100dvh]', 'overflow-hidden', 'flex-col');
   });
 
   it('says what a product that is not connected needs', async () => {
@@ -100,7 +99,8 @@ describe('product page', () => {
 
     const main = within(await screen.findByRole('main'));
     expect(main.getByRole('heading', { level: 1, name: 'Fluid' })).toBeInTheDocument();
-    expect(main.getByText('Crypto · Coming soon')).toBeInTheDocument();
+    expect(main.getByText('Crypto')).toBeInTheDocument();
+    expect(main.getByText('Coming soon')).toBeInTheDocument();
     expect(main.getByText('Not connected')).toBeInTheDocument();
     expect(main.getByText('Set VITE_API_FLUID and rebuild.')).toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe('product page', () => {
     renderApp('/sara');
 
     const main = within(await screen.findByRole('main'));
-    expect(await main.findByText('Token rejected')).toBeInTheDocument();
+    expect(await main.findByText("Sara didn't accept this token.")).toBeInTheDocument();
   });
 });
 
@@ -229,13 +229,15 @@ describe('product page: analytics', () => {
     expect(main.queryByRole('img')).toBeNull();
   });
 
-  it('keeps the resource list below it, in the same groups with the same counts', async () => {
+  it('shows analytics tiles alongside the sidebar which has the resource links', async () => {
     renderApp('/strive');
     const main = within(await screen.findByRole('main'));
 
     expect(await main.findByRole('group', { name: 'Visitors' })).toBeInTheDocument();
-    expect(main.getByRole('heading', { name: 'People' })).toBeInTheDocument();
-    expect(main.getByRole('link', { name: 'Clubs 45' })).toHaveAttribute('href', '/strive/clubs');
+
+    // Resource links are in the sidebar nav, not the page body
+    const rail = within(await screen.findByRole('navigation', { name: 'Products' }));
+    expect(await rail.findByRole('link', { name: 'Clubs 45' })).toHaveAttribute('href', '/strive/clubs');
   });
 
   it('is busy while it loads and not afterwards', async () => {
@@ -267,7 +269,7 @@ describe('product page: analytics', () => {
     expect(fake.requests.some((r) => r.search.includes('bogus'))).toBe(false);
   });
 
-  it("shows the product's own note, and nothing else, when Google Analytics is not set up", async () => {
+  it("shows the product's own note without any resource list when Google Analytics is not set up", async () => {
     const unset = createFakeAdminApi({
       token: FAKE_TOKEN,
       product: 'strive',
@@ -282,25 +284,22 @@ describe('product page: analytics', () => {
     ).toBeInTheDocument();
     expect(main.queryByRole('group', { name: 'Visitors' })).toBeNull();
     expect(main.queryByRole('img')).toBeNull();
-    expect(await main.findByRole('link', { name: 'Users 3' })).toBeInTheDocument();
   });
 
-  it('says analytics are not available yet from a product without the route, and keeps the list', async () => {
+  it('keeps analytics controls when analytics is unavailable from a product without the route', async () => {
     server.use(http.get(ANALYTICS, () => HttpResponse.json({ message: 'Not found' }, { status: 404 })));
     renderApp('/strive');
     const main = within(await screen.findByRole('main'));
 
     expect(await main.findByText("Analytics isn't available from Strive yet.")).toBeInTheDocument();
-    expect(await main.findByRole('link', { name: 'Users 3' })).toBeInTheDocument();
   });
 
-  it('names the product that refused the token, and keeps the list', async () => {
+  it('keeps controls when the token was rejected', async () => {
     server.use(http.get(ANALYTICS, () => HttpResponse.json({ message: 'Unauthorized' }, { status: 401 })));
     renderApp('/strive');
     const main = within(await screen.findByRole('main'));
 
     expect(await main.findByText("Strive didn't accept this token.")).toBeInTheDocument();
-    expect(await main.findByRole('link', { name: 'Users 3' })).toBeInTheDocument();
   });
 
   it("carries the product's message when Google fails, and tries again on request", async () => {

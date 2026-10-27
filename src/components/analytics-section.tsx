@@ -46,38 +46,31 @@ export function AnalyticsSection({ product }: { product: ProductConfig }) {
   let body: ReactNode;
 
   if (data?.configured) {
-    const [headline, ...rest] = data.metrics;
     body = (
-      <div className="grid gap-6">
-        <div className="grid grid-cols-2 gap-3">
-          {headline ? (
-            <StatTile
-              wide
-              label={headline.label}
-              count={headline.count}
-              previous={headline.previous}
-              days={days}
-            />
-          ) : null}
-          {rest.map((metric) => (
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {data.metrics.map((metric) => (
             <StatTile
               key={metric.key}
               label={metric.label}
               count={metric.count}
               previous={metric.previous}
               days={days}
+              unit={metric.unit}
             />
           ))}
         </div>
         {data.series.length > 0 ? (
-          <div className="grid gap-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
             <h3 className="text-body font-medium">
               {data.series
                 .slice(0, 2)
                 .map((line) => line.label)
                 .join(' & ')}
             </h3>
-            <AnalyticsChart series={data.series} days={days} />
+            <div className="min-h-[160px] flex-1" style={{ maxHeight: '260px' }}>
+              <AnalyticsChart series={data.series} days={days} />
+            </div>
           </div>
         ) : null}
         {data.note ? <p className="text-micro text-ink/50">{data.note}</p> : null}
@@ -116,7 +109,11 @@ export function AnalyticsSection({ product }: { product: ProductConfig }) {
   }
 
   return (
-    <section aria-labelledby="analytics-heading" aria-busy={query.isLoading} className="grid gap-4">
+    <section
+      aria-labelledby="analytics-heading"
+      aria-busy={query.isLoading}
+      className="flex min-h-0 flex-1 flex-col gap-4"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="analytics-heading" className="text-micro font-normal text-ink/50">
           Analytics
