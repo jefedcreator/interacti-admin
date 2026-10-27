@@ -1,5 +1,7 @@
 # Product Analytics Dashboard Redesign Implementation Plan
 
+> **Status:** Complete (2026-10-27). Tasks 1–5 done; the expanded `kit/analytics.ts` is byte-identical across `strive`, `0nbox`, `parcours`, `sara` and `fluid` (md5 verified), and `yarn typecheck`, `yarn test`, `yarn build` pass in `admin`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Transform the product overview screen (`/:product`, e.g. `/parcours`) so it displays exclusively Google Analytics data within the exact viewport height (`100dvh` / no page scroll on desktop), styles down trends with red arrows and numbers and up trends with green arrows and numbers, and expands GA4 data fetching across product backends for the full engagement metric suite (Users, Views, Sessions, Engagement Rate, Bounce Rate, Duration, Clicks, and Enquiries).
@@ -51,7 +53,7 @@
   export function formatMetricValue(value: number, unit?: MetricUnit): string;
   ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/analytics-utils.test.ts`:
 ```ts
@@ -126,12 +128,12 @@ describe('analytics utilities', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `yarn vitest run tests/unit/analytics-utils.test.ts`  
 Expected: FAIL with missing exports `describeChangeTrend` and `formatMetricValue`.
 
-- [ ] **Step 3: Update `src/types/admin.ts` and `src/utils/analytics.ts`**
+- [x] **Step 3: Update `src/types/admin.ts` and `src/utils/analytics.ts`**
 
 In `src/types/admin.ts`:
 ```ts
@@ -223,12 +225,12 @@ export function formatMetricValue(value: number, unit?: MetricUnit): string {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `yarn vitest run tests/unit/analytics-utils.test.ts`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types/admin.ts src/utils/analytics.ts tests/unit/analytics-utils.test.ts
@@ -247,7 +249,7 @@ git commit -m "feat(analytics): add trend parsing and metric unit formatting uti
 - Consumes: `describeChangeTrend`, `formatMetricValue`, `MetricUnit`
 - Produces: Updated `<StatTile label count previous days unit? wide? />` component with green/red trend styling.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/stat-tile.test.tsx`:
 ```tsx
@@ -285,12 +287,12 @@ describe('StatTile', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `yarn vitest run tests/unit/stat-tile.test.tsx`  
 Expected: FAIL (missing `data-testid="stat-tile-trend"` and color classes).
 
-- [ ] **Step 3: Update `src/components/stat-tile.tsx`**
+- [x] **Step 3: Update `src/components/stat-tile.tsx`**
 
 ```tsx
 import type { AnalyticsDays, MetricUnit } from '@/types/admin';
@@ -342,12 +344,12 @@ export function StatTile({ label, count, previous, days, unit, wide = false }: S
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `yarn vitest run tests/unit/stat-tile.test.tsx`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/stat-tile.tsx tests/unit/stat-tile.test.tsx
@@ -366,7 +368,7 @@ git commit -m "feat(ui): add green and red trend arrow styling to StatTile"
 **Interfaces:**
 - Produces: `ProductScreen` that contains only the compact product header and the `AnalyticsSection`, filling `h-[100dvh] max-h-[100dvh] overflow-hidden`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/product-screen.test.tsx`:
 ```tsx
@@ -430,12 +432,12 @@ describe('ProductPage', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `yarn vitest run tests/unit/product-screen.test.tsx`  
 Expected: FAIL (`Courses` is currently found on the page).
 
-- [ ] **Step 3: Update `src/app/routes/product.tsx` and `src/components/analytics-section.tsx`**
+- [x] **Step 3: Update `src/app/routes/product.tsx` and `src/components/analytics-section.tsx`**
 
 In `src/app/routes/product.tsx`:
 Replace the manifest resource list mapping so the body only contains `<AnalyticsSection product={product} />`.
@@ -479,12 +481,12 @@ Adjust grid and chart layout so it fits cleanly into the flex container:
 - Pass `unit={metric.unit}` to `<StatTile>`.
 - Chart container has `flex-1 min-h-[160px] max-h-[260px]` to stay within the display height.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `yarn vitest run tests/unit/product-screen.test.tsx`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/routes/product.tsx src/components/analytics-section.tsx tests/unit/product-screen.test.tsx
@@ -510,27 +512,27 @@ git commit -m "feat(ui): dedicate product home to analytics and lock display vie
   - `click` event count (Clicks, unit: `number`)
   - `GA_ENQUIRY_EVENT` event count (Enquiries, unit: `number`, if set)
 
-- [ ] **Step 1: Write test case in `../strive/src/backend/admin/kit/__tests__/analytics.test.ts`**
+- [x] **Step 1: Write test case in `../strive/src/backend/admin/kit/__tests__/analytics.test.ts`**
 
 Add test verifying the batch request requests `sessions`, `engagementRate`, `bounceRate`, `averageSessionDuration`, and click events, and returns `unit` on each metric.
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `cd ../strive && yarn vitest run src/backend/admin/kit/__tests__/analytics.test.ts`  
 Expected: FAIL.
 
-- [ ] **Step 3: Update `../strive/src/backend/admin/kit/analytics.ts`**
+- [x] **Step 3: Update `../strive/src/backend/admin/kit/analytics.ts`**
 
 In Report 1 (Totals), add `sessions`, `engagementRate`, `bounceRate`, and `averageSessionDuration` to `metrics`.
 Add Report 3 for clicks (`eventName == 'click'`).
 Map metrics into `metrics` array with corresponding `key`, `label`, `count`, `previous`, and `unit`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd ../strive && yarn vitest run src/backend/admin/kit/__tests__/analytics.test.ts`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit in Strive**
+- [x] **Step 5: Commit in Strive**
 
 ```bash
 git -C ../strive add src/backend/admin/kit/analytics.ts src/backend/admin/kit/__tests__/analytics.test.ts
@@ -544,15 +546,15 @@ git -C ../strive commit -m "feat(analytics): expand GA4 batch query to include s
 **Files:**
 - `admin` workspace
 
-- [ ] **Step 1: Run typecheck**
+- [x] **Step 1: Run typecheck**
 Run: `yarn typecheck`  
 Expected: PASS with 0 errors.
 
-- [ ] **Step 2: Run all unit tests**
+- [x] **Step 2: Run all unit tests**
 Run: `yarn test`  
 Expected: PASS all tests.
 
-- [ ] **Step 3: Commit any final integration adjustments**
+- [x] **Step 3: Commit any final integration adjustments**
 ```bash
 git add -A
 git commit -m "chore: verify analytics dashboard layout and trend styling"
