@@ -5,6 +5,16 @@
   --color-black: #000;
   --color-white: #fff;
 
+  /*
+   * `--color-*: initial` above throws away Tailwind's whole default palette, so any colour class
+   * used in the app has to be redeclared here or it compiles to nothing at all. These four are the
+   * trend arrows: up in emerald, down in rose, with the brighter shade for a dark surface.
+   */
+  --color-emerald-400: oklch(76.5% 0.177 163.223);
+  --color-emerald-600: oklch(59.6% 0.145 163.225);
+  --color-rose-400: oklch(71.2% 0.194 13.428);
+  --color-rose-600: oklch(58.6% 0.253 17.585);
+
   --font-sans: "Switzer", ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
 
   --text-micro: 0.875rem;
