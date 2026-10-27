@@ -64,7 +64,17 @@ export type ListParams = {
 export const ANALYTICS_DAYS = [7, 30, 90] as const;
 export type AnalyticsDays = (typeof ANALYTICS_DAYS)[number];
 
-export type AnalyticsMetric = { key: string; label: string; count: number; previous: number };
+export type MetricUnit = 'number' | 'percent' | 'duration';
+
+export interface AdminAnalyticsMetric {
+  key: string;
+  label: string;
+  count: number;
+  previous: number;
+  unit?: MetricUnit;
+}
+
+export type AnalyticsMetric = AdminAnalyticsMetric;
 
 export type AnalyticsSeries = {
   key: string;
@@ -72,10 +82,10 @@ export type AnalyticsSeries = {
   points: { date: string; count: number }[]; // oldest first, one per UTC day
 };
 
-export type AdminAnalytics = {
+export interface AdminAnalytics {
   days: AnalyticsDays;
   configured: boolean; // false: the product has no Google Analytics set up
   note: string | null; // the product's own words: what's missing, or that GA lags
-  metrics: AnalyticsMetric[]; // tiles in order; the first is the headline; absent = not tracked
+  metrics: AdminAnalyticsMetric[]; // tiles in order; the first is the headline; absent = not tracked
   series: AnalyticsSeries[]; // chart lines, at most two
-};
+}

@@ -1,4 +1,4 @@
-import { ANALYTICS_DAYS, type AnalyticsDays } from '@/types/admin';
+import { ANALYTICS_DAYS, type AnalyticsDays, type MetricUnit } from '@/types/admin';
 import { formatCount } from './format';
 
 export const DEFAULT_DAYS: AnalyticsDays = 30;
@@ -10,15 +10,59 @@ export function readDays(search: URLSearchParams): AnalyticsDays {
   return ANALYTICS_DAYS.find((days) => String(days) === given[0]) ?? DEFAULT_DAYS;
 }
 
+export type TrendChange = {
+  arrow: '↑' | '↓' | null;
+  valueText: string;
+  direction: 'up' | 'down' | 'neutral';
+};
+
+export function describeChangeTrend(count: number, previous: number): TrendChange {
+  if (previous === 0) {
+    return {
+      arrow: null,
+      valueText: count === 0 ? 'No activity' : 'New',
+      direction: 'neutral',
+    };
+  }
+  if (count === previous) {
+    return {
+      arrow: null,
+      valueText: 'No change',
+      direction: 'neutral',
+    };
+  }
+  const percent = Math.max(1, Math.round((Math.abs(count - previous) / previous) * 100));
+  const isUp = count > previous;
+  return {
+    arrow: isUp ? '↑' : '↓',
+    valueText: `${formatCount(percent)}%`,
+    direction: isUp ? 'up' : 'down',
+  };
+}
+
 /**
  * How a count moved against the previous period, in words and glyphs and never in colour. A change
  * that rounds to nothing still reads as 1%, and a previous period of zero is "New", not a ratio.
  */
 export function describeChange(count: number, previous: number): string {
-  if (previous === 0) return count === 0 ? 'No activity' : 'New';
-  if (count === previous) return 'No change';
-  const percent = Math.max(1, Math.round((Math.abs(count - previous) / previous) * 100));
-  return `${count > previous ? '↑' : '↓'} ${formatCount(percent)}%`;
+  const trend = describeChangeTrend(count, previous);
+  return trend.arrow ? `${trend.arrow} ${trend.valueText}` : trend.valueText;
+}
+
+export function formatMetricValue(value: number, unit?: MetricUnit): string {
+  if (unit === 'percent') {
+    return `${Number(value.toFixed(1))}%`;
+  }
+  if (unit === 'duration') {
+    const totalSecs = Math.round(value);
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    }
+    return `${secs}s`;
+  }
+  return formatCount(Math.round(value));
 }
 
 const at = (n: number): number => Math.round(n * 100) / 100;
